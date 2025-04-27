@@ -1,0 +1,6 @@
+<% if (locals.flash) { %>
+  <div class="flash-message <%= flash.type %>" role="alert">
+    <%= flash.text %>
+    <button class="flash-close" onclick="this.parentElement.style.display='none'">×</button>
+  </div>
+<% } %>

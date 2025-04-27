@@ -1,0 +1,63 @@
+<svg viewBox="0 0 300 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logo-gradient-alt" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#74b9a3" />
+      <stop offset="100%" stop-color="#7fa6bc" />
+    </linearGradient>
+  </defs>
+
+  <!-- Main logo container -->
+  <g transform="translate(20, 10)">
+    <!-- Calendar icon base -->
+    <rect x="0" y="10" width="70" height="70" rx="8" fill="url(#logo-gradient-alt)" />
+    
+    <!-- Calendar top bar -->
+    <rect x="0" y="10" width="70" height="15" rx="8" fill="#e27d60" />
+    
+    <!-- Calendar hangers -->
+    <rect x="15" y="5" width="8" height="10" rx="2" fill="#666" />
+    <rect x="47" y="5" width="8" height="10" rx="2" fill="#666" />
+    
+    <!-- Calendar grid lines (simplified) -->
+    <line x1="0" y1="40" x2="70" y2="40" stroke="white" stroke-width="2" />
+    <line x1="0" y1="60" x2="70" y2="60" stroke="white" stroke-width="2" />
+    <line x1="35" y1="25" x2="35" y2="80" stroke="white" stroke-width="2" />
+    
+    <!-- People icons in calendar -->
+    <circle cx="17" cy="50" r="8" fill="white" />
+    <circle cx="53" cy="50" r="8" fill="white" />
+    <circle cx="17" cy="70" r="8" fill="white" />
+    <circle cx="53" cy="70" r="8" fill="white" />
+    
+    <!-- Connection lines between people -->
+    <line x1="25" y1="50" x2="45" y2="50" stroke="white" stroke-width="2" />
+    <line x1="17" y1="58" x2="17" y2="62" stroke="white" stroke-width="2" />
+    <line x1="53" y1="58" x2="53" y2="62" stroke="white" stroke-width="2" />
+    <line x1="25" y1="70" x2="45" y2="70" stroke="white" stroke-width="2" />
+    <line x1="17" y1="50" x2="53" y2="70" stroke="white" stroke-width="2" stroke-dasharray="2,2" />
+    
+    <!-- Text "SquadUp" -->
+    <g transform="translate(90, 55)">
+      <!-- Shadow effect -->
+      <text font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="#0000001a" text-anchor="start" x="2" y="2">
+        SquadUp
+      </text>
+      
+      <!-- Main text -->
+      <text font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="#74b9a3" text-anchor="start">
+        Squad
+      </text>
+      <text font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="#e27d60" text-anchor="start" x="120" y="0">
+        Up
+      </text>
+      
+      <!-- Upward arrow positioned above "Up" text -->
+      <path d="M 155,-25 L 165,-40 L 175,-25" stroke="#e27d60" stroke-width="3" fill="none" />
+      
+      <!-- Tagline -->
+      <text font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="start" x="5" y="20">
+        Coordinate effortlessly
+      </text>
+    </g>
+  </g>
+</svg>

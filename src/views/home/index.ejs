@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SquadUp - Find Time Together</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="page-container">
+
+    <!-- Main content area -->
+    <main>
+      <section class="welcome-section">
+        <h2 class="welcome-text">Hello, welcome to SquadUp!</h2>
+        <div class="intro-text">
+          <p class="intro-heading">Register to gain access to some neat features like joining groups and plan activities with your friends!</p>
+          <p class="intro-subheading">Find times when everyone's free, plan activities, and spend more time together</p>
+        </div>
+      </section>
+
+      <img src="/img/feature-chat.svg" alt="Cell phone with group chat">
+
+      <section class="features-section">
+        <!-- Feature cards -->
+        <div class="feature-card">
+          <h3 class="feature-title">Find Common Availability</h3>
+          <p class="feature-description">Instantly discover when everyone is free without endless group texts</p>
+        </div>
+
+        <div class="feature-card">
+          <h3 class="feature-title">Plan Group Activities</h3>
+          <p class="feature-description">Create and organize gatherings with all details in one place</p>
+        </div>
+
+        <div class="feature-card">
+          <h3 class="feature-title">Coordinates with friends</h3>
+          <p class="feature-description">Chat directly within activity plans to keep conversations focused</p>
+        </div>
+
+        <div class="feature-card">
+          <h3 class="feature-title">Keep Track of Plans</h3>
+          <p class="feature-description">See all upcoming events at a glance with smart reminders</p>
+        </div>
+      </section>
+      <% if (! user) { %>  
+      <section class="cta-section">
+        <div class="cta-card">
+          <h3 class="cta-text">Get started here</h3>
+          <a href="/register" class="btn register-btn">Register</a>
+        </div>
+      </section>
+      <% } %>
+    </main>
+  </div>
+</body>
+</html>
