@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SquadUp - Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="page-container">
+    <!-- Main content area -->
+    <main>
+      <section>
+        <div class="form-container">
+          <h1>Login to your account</h1>
+          
+          <% if (locals.error) { %>
+            <div class="error-message">
+              <%= error %>
+            </div>
+          <% } %>
+          
+          <form action="/login" method="POST">
+            <div class="input-group">
+              <label for="username">Username</label>
+              <input type="text" id="username" name="username" placeholder="Enter your username">
+            </div>
+            
+            <div class="input-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" name="password" placeholder="Enter your password" required minlength="10">
+            </div>
+            <button type="submit" class="btn submit-btn">Login</button>
+          </form>
+          <br>
+        <div class="alternative-action">
+          Don't have an account? <a href="/register">Sign up here</a>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
