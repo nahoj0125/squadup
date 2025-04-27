@@ -1,0 +1,80 @@
+<div class="container availability-container">
+  <header class="page-header">
+    <h1>Common Availability for "<%= group.name %>"</h1>
+    <div class="group-actions">
+      <a href="/groups/<%= group.id %>" class="btn back-btn">Back to Group</a>
+      <a href="/groups/<%= group.id %>/availability" class="btn update-btn">Update My Availability</a>
+    </div>
+  </header>
+
+  <div class="availability-content">
+    <div class="instructions">
+      <p>This view shows times when group members are available. Darker colors indicate more people are available.</p>
+    </div>
+
+    <div class="calendar-container">
+      <div class="calendar-header">
+        <button type="button" id="prev-week" class="btn calendar-nav-btn">&laquo; Previous Week</button>
+        <h2 id="current-week-display">Week of May 1, 2025</h2>
+        <button type="button" id="next-week" class="btn calendar-nav-btn">Next Week &raquo;</button>
+      </div>
+      
+      <div class="time-grid">
+        <!-- Time labels column -->
+        <div class="time-labels">
+          <div class="day-label"></div> <!-- Empty corner cell -->
+          <% for(let hour = 8; hour < 22; hour++) { %>
+            <div class="time-label"><%= hour > 12 ? (hour - 12) + 'pm' : hour + 'am' %></div>
+          <% } %>
+        </div>
+        
+        <!-- Days columns -->
+        <% const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']; %>
+        <% days.forEach((day, dayIndex) => { %>
+          <div class="day-column" data-day="<%= dayIndex %>">
+            <div class="day-label"><%= day %></div>
+            <% for(let hour = 8; hour < 22; hour++) { %>
+              <div class="time-cell" 
+                   data-day="<%= dayIndex %>" 
+                   data-hour="<%= hour %>">
+                <span class="availability-count"></span>
+              </div>
+            <% } %>
+          </div>
+        <% }); %>
+      </div>
+      
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #ffffff"></div>
+          <div class="legend-label">0 people</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #c5e1d8"></div>
+          <div class="legend-label">1 person</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #97cdb9"></div>
+          <div class="legend-label">2 people</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #74b9a3"></div>
+          <div class="legend-label">3+ people</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="best-times-section">
+      <h3>Best Times to Meet</h3>
+      <div id="best-times-list">
+        <p class="no-times-message">Loading best times...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="common-availability-data">
+  <%- JSON.stringify(commonTimes || []) %>
+</script>
+
+<script src="/js/group-availability.js"></script>

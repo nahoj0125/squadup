@@ -1,0 +1,103 @@
+<div class="container group-details-container">
+  <header class="page-header">
+    <h1><%= group.name %></h1>
+    <div class="group-actions">
+      <a href="/groups" class="btn back-btn">Back to Groups</a>
+    </div>
+  </header>
+
+  <div class="group-content">
+    <div class="group-main">
+      <section class="group-description">
+        <h2>About</h2>
+        <p><%= group.description || 'No description provided.' %></p>
+      </section>
+
+        <section class="group-availability">
+          <h2>Group Availability</h2>
+          <div class="availability-actions">
+            <a href="/groups/<%= group.id %>/common-availability" class="btn view-availability-btn">
+              View Common Availability
+            </a>
+            <a href="/groups/<%= group.id %>/availability" class="btn set-availability-btn">
+              Set My Availability
+            </a>
+          </div>
+        </section>
+      <section class="group-messages">
+        <h2>Messages</h2>
+        
+        <!-- Message form -->
+        <form class="message-form" action="/groups/<%= group.id %>/messages" method="POST">
+          <div class="form-group">
+            <textarea 
+              name="content" 
+              placeholder="Type your message here..." 
+              required
+              maxlength="1000"
+              class="message-input"
+            ></textarea>
+            <button type="submit" class="btn send-btn">Send</button>
+          </div>
+        </form>
+        
+        <!-- Messages list -->
+        <div class="messages-list">
+          <% if (messages && messages.length > 0) { %>
+            <% messages.forEach(message => { %>
+              <div class="message-item <%= message.sender.id === user.id ? 'message-mine' : '' %>">
+                <div class="message-header">
+                  <span class="message-sender"><%= message.sender.firstname %> <%= message.sender.lastname %></span>
+                  <span class="message-time"><%= new Date(message.createdAt).toLocaleString() %></span>
+                </div>
+                <div class="message-content">
+                  <%= message.content %>
+                </div>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <div class="empty-messages">
+              <p>No messages yet. Be the first to post!</p>
+            </div>
+          <% } %>
+        </div>
+      </section>
+    </div>
+
+    <aside class="group-sidebar">
+      <section class="group-members">
+        <h2>Members (<%= group.members.length %>)</h2>
+        <div class="members-list">
+          <% group.members.forEach(member => { %>
+            <div class="member-item">
+              <div class="member-name">
+                <%= member.firstname %> <%= member.lastname %> 
+                <% if (member.id === group.creator.id) { %>
+                  <span class="creator-badge">Creator</span>
+                <% } %>
+              </div>
+              <div class="member-username">@<%= member.username %></div>
+            </div>
+          <% }) %>
+        </div>
+        <div class="group-actions">
+          <a href="/groups" class="btn">Back to Groups</a>
+          <% if (user.id === group.creator.id) { %>
+            <a href="/groups/<%= group.id %>/invite" class="btn primary-btn">Invite User</a>
+          <% } %>
+        </div>
+      </section>
+      <div class="sidebar-section">
+        <h3>Group Info</h3>
+        <div class="info-item">
+          <span class="info-label">Created</span>
+          <span class="info-value"><%= new Date(group.createdAt).toLocaleDateString() %></span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Type</span>
+          <span class="info-value"><%= group.isPublic ? 'Public' : 'Private' %></span>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>

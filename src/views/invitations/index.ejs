@@ -1,0 +1,30 @@
+<div class="container">
+  <h1>Your Invitations</h1>
+  
+  <% if (invitations.length === 0) { %>
+    <p>You have no pending invitations.</p>
+  <% } else { %>
+    <ul class="invitations-list">
+      <% invitations.forEach(invitation => { %>
+        <li class="invitation-item">
+          <div class="invitation-info">
+            <h3><%= invitation.group.name %></h3>
+            <p>Invited by: <%= invitation.invitedBy.username %></p>
+          </div>
+          <div class="invitation-actions">
+            <form action="/invitations/<%= invitation.id %>/accept" method="POST" style="display:inline;">
+              <button type="submit" class="btn accept-btn">Accept</button>
+            </form>
+            <form action="/invitations/<%= invitation.id %>/decline" method="POST" style="display:inline;">
+              <button type="submit" class="btn decline-btn">Decline</button>
+            </form>
+          </div>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+  
+  <div class="actions">
+    <a href="/" class="btn secondary-btn">Back to Home</a>
+  </div>
+</div>

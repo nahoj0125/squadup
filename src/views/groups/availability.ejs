@@ -1,0 +1,63 @@
+<div class="container availability-container">
+  <header class="page-header">
+    <h1>Set Your Availability for "<%= group.name %>"</h1>
+    <div class="group-actions">
+      <a href="/groups/<%= group.id %>" class="btn back-btn">Back to Group</a>
+    </div>
+  </header>
+
+  <div class="availability-content">
+    <div class="instructions">
+      <p>Select the time slots when you're available. This helps coordinate activities with your group members.</p>
+    </div>
+
+    <form action="/groups/<%= group.id %>/availability" method="POST" id="availability-form">
+      <div class="calendar-container">
+        <div class="calendar-header">
+          <button type="button" id="prev-week" class="btn calendar-nav-btn">&laquo; Previous Week</button>
+          <h2 id="current-week-display">Week of May 1, 2025</h2>
+          <button type="button" id="next-week" class="btn calendar-nav-btn">Next Week &raquo;</button>
+        </div>
+        
+        <div class="time-grid">
+          <!-- Time labels column -->
+          <div class="time-labels">
+            <div class="day-label"></div> <!-- Empty corner cell -->
+            <% for(let hour = 8; hour < 22; hour++) { %>
+              <div class="time-label"><%= hour > 12 ? (hour - 12) + 'pm' : hour + 'am' %></div>
+            <% } %>
+          </div>
+          
+          <!-- Days columns -->
+          <% const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']; %>
+          <% days.forEach((day, dayIndex) => { %>
+            <div class="day-column" data-day="<%= dayIndex %>">
+              <div class="day-label"><%= day %></div>
+              <% for(let hour = 8; hour < 22; hour++) { %>
+                <div class="time-cell" 
+                     data-day="<%= dayIndex %>" 
+                     data-hour="<%= hour %>">
+                </div>
+              <% } %>
+            </div>
+          <% }); %>
+        </div>
+        
+        <!-- Hidden input to store serialized availability data -->
+        <input type="hidden" name="timeSlots" id="timeSlots-input" value="">
+        <input type="hidden" name="userId" value="<%= user.id %>">
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn save-btn">Save Availability</button>
+        <button type="button" id="clear-all" class="btn clear-btn">Clear All</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="application/json" id="existing-availability-data">
+  <%- availability ? JSON.stringify(availability.timeSlots || []) : '[]' %>
+</script>
+
+<script src="/js/user-availability.js"></script>

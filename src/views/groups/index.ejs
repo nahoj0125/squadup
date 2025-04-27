@@ -1,0 +1,29 @@
+<div class="container groups-container">
+  <header class="page-header">
+    <h1>My Groups</h1>
+    <a href="/groups/new" class="btn create-btn">Create New Group</a>
+  </header>
+
+  <% if (groups.length === 0) { %>
+    <div class="empty-state">
+      <h2>No Groups Yet</h2>
+      <p>You haven't created or joined any groups yet. Create your first group to get started!</p>
+      <a href="/groups/new" class="btn create-btn">Create a Group</a>
+    </div>
+  <% } else { %>
+    <div class="groups-grid">
+      <% groups.forEach(group => { %>
+        <div class="group-card">
+          <h2 class="group-name"><a href="/groups/<%= group.id %>"><%= group.name %></a></h2>
+          <p class="group-description">
+            <%= group.description ? group.description.substring(0, 100) + (group.description.length > 100 ? '...' : '') : 'No description' %>
+          </p>
+          <div class="group-meta">
+            <span class="group-creator">Created by: <%= group.creator.username %></span>
+            <span class="group-members"><%= group.members.length %> members</span>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>

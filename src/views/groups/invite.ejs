@@ -1,0 +1,15 @@
+<div class="container">
+  <h1>Invite to Group: <%= group.name %></h1>
+  
+  <form action="/groups/<%= group.id %>/invite" method="POST">
+    <div class="form-group">
+      <label for="username">Username to invite:</label>
+      <input type="text" id="username" name="username" required>
+    </div>
+    <button type="submit" class="btn primary-btn">Send Invitation</button>
+  </form>
+  
+  <div class="actions">
+    <a href="/groups/<%= group.id %>" class="btn secondary-btn">Back to Group</a>
+  </div>
+</div>
