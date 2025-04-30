@@ -319,7 +319,7 @@ export class GroupController {
     try {
       const groupId = req.params.id
       const group = await this.#groupService.getGroupById(groupId)
-      const commonTimes = await this.#availabilityService.findCommonAvailability(groupId)
+      const commonTimes = await this.#availabilityService.getCommonAvailability(groupId)
 
       res.render('groups/common-availability', {
         group,

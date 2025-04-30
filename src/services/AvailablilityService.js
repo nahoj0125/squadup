@@ -62,15 +62,15 @@ export class AvailabilityService {
   }
 
   /**
-   * Finds common availability time slots for a group where at least the minimum.
+   * Finds common availability time slots for a group where at least the minimum
    * number of members are available simultaneously.
    *
    * @param {string} groupId - The ID of the group to check.
-   * @param {number|null} minRequiredMembers - Minimum number of members required to be available (defaults to all).
+   * @param {number} [minRequiredMembers] - Minimum number of members required to be available (defaults to all).
    * @returns {Array} - Array of overlapping time slots with users.
    */
-  async findCommonAvailability (groupId, minRequiredMembers = null) {
-    // Get all availability records for the group
+  async getCommonAvailability (groupId, minRequiredMembers) {
+  // Get all availability records for the group
     const memberAvailabilities = await this.getGroupAvailability(groupId)
 
     // Return empty array if no availabilities found
@@ -78,7 +78,8 @@ export class AvailabilityService {
       return []
     }
 
-    const requiredMemberCount = this.#determineRequiredMemberCount(memberAvailabilities, minRequiredMembers)
+    const effectiveMinRequired = minRequiredMembers === undefined ? 0 : minRequiredMembers
+    const requiredMemberCount = this.#determineRequiredMemberCount(memberAvailabilities, effectiveMinRequired)
     const allMemberTimeSlots = this.#extractMemberTimeSlots(memberAvailabilities)
     const overlappingTimeSlots = this.#findOverlappingTimeSlots(allMemberTimeSlots, requiredMemberCount)
 
@@ -89,16 +90,15 @@ export class AvailabilityService {
    * Determines the minimum number of members required for an overlap to be valid.
    *
    * @param {Array} memberAvailabilities - Array of availability records.
-   * @param {number|null} minMembers - Requested minimum number of members.
+   * @param {number} [minMembers] - Optional requested minimum number of members.
    * @returns {number} - The actual minimum number of members to use.
    */
   #determineRequiredMemberCount (memberAvailabilities, minMembers) {
-    // If no minimum specified or requested minimum exceeds total members,
-    // use total available members as minimum
-    if (minMembers === null || minMembers > memberAvailabilities.length) {
-      return memberAvailabilities.length
-    }
-    return minMembers
+    const effectiveMin = (minMembers !== undefined)
+      ? Math.min(minMembers, memberAvailabilities.length)
+      : memberAvailabilities.length
+
+    return effectiveMin
   }
 
   /**

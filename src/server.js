@@ -14,6 +14,7 @@ import { connectToDatabase } from './config/mongoose.js'
 import { sessionOptions } from './config/sessionOptions.js'
 import { router } from './routes/router.js'
 import helmetConfig from './config/helmetConfig.js'
+import 'dotenv/config'
 
 try {
   // Connect to MongoDB.
