@@ -4,7 +4,7 @@
  * @author Johan Persson
  */
 
-import { LoginService } from '../services/loginService.js'
+import { LoginService } from '../services/LoginService.js'
 
 /**
  * Encapsulates a controller.

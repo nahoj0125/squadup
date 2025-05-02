@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run dev
+    env_file:
+      - .env
+
+  mongo:
+    ports:
+      - "27018:27017"  # För lokal utveckling
+    volumes:
+      - mongo-dev-data:/data/db
+
+volumes:
+  mongo-dev-data:

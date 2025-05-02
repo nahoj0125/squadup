@@ -1,36 +1,25 @@
-version: '3.8'
-
 services:
   app:
-    build: .
-    container_name: squadup-app-dev
-    restart: always
-    ports:
-      - "8080:3000"
+    container_name: squadup-app
+    build:
+      context: .
     environment:
-      - DB_CONNECTION_STRING=mongodb://mongo:27017/squadup
       - MONGODB_URI=mongodb://mongo:27017/squadup
-      - PORT=3000
-      - SESSION_NAME=X9L73KWD82JZF46M5BPTY
-      - SESSION_SECRET=7X4JQL9W2B6MKV83N5YPD
+      - DB_CONNECTION_STRING=mongodb://mongo:27017/squadup
+      - PORT=${DOCKER_PORT:-3000}
       - BASE_URL=/
-      - NODE_ENV=development
+      - SESSION_NAME=X9L73KWD82JZF46M5BPTY
+      - SESSION_SECRET=${SESSION_SECRET}
     depends_on:
       - mongo
-    volumes:
-      - ./:/usr/src/app
-      - /usr/src/app/node_modules
-      - ./.env:/usr/src/app/.env
-    command: npm run dev  # Assuming you have a dev script with nodemon
+    ports:
+      - "${DOCKER_PORT:-3000}:3000"
 
   mongo:
+    container_name: squadup-mongo
     image: mongo:latest
-    container_name: squadup-mongo-dev
-    restart: always
-    ports:
-      - "27017:27017"
     volumes:
-      - mongo-data:/data/db
+      - ./volumes/mongodb:/data/db
 
 volumes:
-  mongo-data:
+  mongodb:

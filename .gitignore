@@ -199,3 +199,9 @@ $RECYCLE.BIN/
 # Docker
 docker-data/
 *.env.local
+
+# Docker volumes
+volumes/
+/data/
+*/data/
+mongodb/

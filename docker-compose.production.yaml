@@ -1,0 +1,15 @@
+services:
+  app:
+    build:
+      dockerfile: Dockerfile.production
+    restart: always
+    environment:
+      - NODE_ENV=production
+
+  mongo:
+    restart: always
+    volumes:
+      - mongodb:/data/db
+
+volumes:
+  mongodb:

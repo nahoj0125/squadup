@@ -4,7 +4,7 @@
  * @author Johan Persson
  */
 
-import { RegisterService } from '../services/registerService.js'
+import { RegisterService } from '../services/RegisterService.js'
 
 /**
  * Encapsulates a controller.
