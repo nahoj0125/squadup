@@ -324,6 +324,7 @@ export class GroupController {
       res.render('groups/common-availability', {
         group,
         commonTimes,
+        currentUserId: req.session.user.id,
         title: `Common Availability for ${group.name}`
       })
     } catch (error) {
