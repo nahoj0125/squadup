@@ -44,6 +44,14 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('availability-form').addEventListener('submit', function (e) {
     const selectedSlots = []
 
+    const currentWeekEnd = new Date(currentWeekStart)
+    currentWeekEnd.setDate(currentWeekEnd.getDate() + 7)
+
+    const slotsFromOhterWeeks = existingAvailability.filter(slot => {
+      const slotDate = new Date(slot.start)
+      return slotDate < currentWeekStart || slotDate >= currentWeekEnd
+    })
+
     document.querySelectorAll('.time-cell.selected').forEach(cell => {
       const dayIndex = parseInt(cell.dataset.day)
       const hour = parseInt(cell.dataset.hour)
@@ -62,8 +70,10 @@ document.addEventListener('DOMContentLoaded', function () {
       })
     })
 
+    const allSlots = [...slotsFromOhterWeeks, ...selectedSlots]
+
     // Store the serialized data in the hidden input
-    document.getElementById('timeSlots-input').value = JSON.stringify(selectedSlots)
+    document.getElementById('timeSlots-input').value = JSON.stringify(allSlots)
   })
 
   /**
