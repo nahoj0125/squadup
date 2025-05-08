@@ -4,11 +4,8 @@ stages:
   - deploy_production
 
 variables:
-  # Disable TLS to avoid connection issues between Docker client and daemon
   DOCKER_TLS_CERTDIR: ""
-  # Define the Docker host for communication between the client and daemon
   DOCKER_HOST: tcp://docker:2375
-  # Use overlay2 as the Docker storage driver
   DOCKER_DRIVER: overlay2
 
 # Build the Docker images
@@ -17,10 +14,8 @@ build:
   image: docker:latest
   services:
     - name: docker:dind
-      command: ["--tls=false"]  # Disable TLS explicitly to prevent connection issues
-  variables:
-    # Explicitly disable TLS to avoid Docker communication issues
-    DOCKER_TLS_CERTDIR: ""
+      command: ["--tls=false"]
+      # privileged goes here, under the service
   script:
     # Log in to the Docker registry
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -32,8 +27,6 @@ build:
     - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}-prod
   only:
     - main
-  # Enable privileged mode for this job to support Docker-in-Docker
-  privileged: true
 
 # Deploy to staging server (automatically)
 deploy_staging:
@@ -42,13 +35,11 @@ deploy_staging:
   script:
     # Install SSH client
     - apk add --no-cache openssh-client bash
-
     # Set up SSH for secure deployment
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan $STAGING_HOST >> ~/.ssh/known_hosts
-
     # Deploy using docker-compose
     - |
       ssh -i ~/.ssh/id_rsa ubuntu@$STAGING_HOST "
@@ -74,13 +65,11 @@ deploy_production:
   script:
     # Install SSH client
     - apk add --no-cache openssh-client bash
-
     # Set up SSH for secure deployment
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan $PRODUCTION_HOST >> ~/.ssh/known_hosts
-
     # Deploy using docker-compose
     - |
       ssh -i ~/.ssh/id_rsa ubuntu@$PRODUCTION_HOST "
