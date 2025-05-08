@@ -1,32 +1,6 @@
 stages:
-  - build
   - deploy_staging
   - deploy_production
-
-variables:
-  DOCKER_TLS_CERTDIR: ""
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_DRIVER: overlay2
-
-# Build the Docker images
-build:
-  stage: build
-  image: docker:latest
-  services:
-    - name: docker:dind
-      command: ["--tls=false"]
-      # privileged goes here, under the service
-  script:
-    # Log in to the Docker registry
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    # Build and push the main Docker image
-    - docker build -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA} -f Dockerfile .
-    - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}
-    # Build and push the production Docker image
-    - docker build -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}-prod -f Dockerfile.production .
-    - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}-prod
-  only:
-    - main
 
 # Deploy to staging server (automatically)
 deploy_staging:
@@ -34,21 +8,30 @@ deploy_staging:
   image: alpine:latest
   script:
     # Install SSH client
-    - apk add --no-cache openssh-client bash
+    - apk add --no-cache openssh-client bash git
     # Set up SSH for secure deployment
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan $STAGING_HOST >> ~/.ssh/known_hosts
-    # Deploy using docker-compose
+    # Deploy using git clone and docker-compose
     - |
       ssh -i ~/.ssh/id_rsa ubuntu@$STAGING_HOST "
         mkdir -p ~/app && cd ~/app
-        export IMAGE_TAG=${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}
+        
+        # Clone or update the repository
+        if [ -d .git ]; then
+          git pull
+        else
+          git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lnu.se/1dv613/student/jp223yp/projects/squadup.git .
+        fi
+        
+        # Set environment variables
         export DOCKER_PORT=${DOCKER_PORT:-8080}
         export SESSION_SECRET=${SESSION_SECRET}
-        docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-        docker pull $IMAGE_TAG
+        
+        # Build and start containers
+        docker-compose build
         docker-compose down
         docker-compose up -d
       "
@@ -64,23 +47,33 @@ deploy_production:
   image: alpine:latest
   script:
     # Install SSH client
-    - apk add --no-cache openssh-client bash
+    - apk add --no-cache openssh-client bash git
     # Set up SSH for secure deployment
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan $PRODUCTION_HOST >> ~/.ssh/known_hosts
-    # Deploy using docker-compose
+    # Deploy using git clone and docker-compose
     - |
       ssh -i ~/.ssh/id_rsa ubuntu@$PRODUCTION_HOST "
         mkdir -p ~/app-production && cd ~/app-production
-        export IMAGE_TAG=${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}-prod
+        
+        # Clone or update the repository
+        if [ -d .git ]; then
+          git pull
+        else
+          git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lnu.se/1dv613/student/jp223yp/projects/squadup.git .
+        fi
+        
+        # Set environment variables
         export DOCKER_PORT=${DOCKER_PORT:-80}
         export SESSION_SECRET=${SESSION_SECRET}
-        docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-        docker pull $IMAGE_TAG
-        docker-compose down
-        docker-compose up -d
+        export NODE_ENV=production
+        
+        # Build and start containers using production Dockerfile
+        docker-compose -f docker-compose.yml -f docker-compose.production.yml build
+        docker-compose -f docker-compose.yml -f docker-compose.production.yml down
+        docker-compose -f docker-compose.yml -f docker-compose.production.yml up -d
       "
   environment:
     name: production
