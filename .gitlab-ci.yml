@@ -17,7 +17,10 @@ build:
   image: docker:latest
   services:
     - name: docker:dind
-      command: ["--privileged"]
+      command: ["--tls=false"]  # Disable TLS explicitly to prevent connection issues
+  variables:
+    # Explicitly disable TLS to avoid Docker communication issues
+    DOCKER_TLS_CERTDIR: ""
   script:
     # Log in to the Docker registry
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -29,6 +32,8 @@ build:
     - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}-prod
   only:
     - main
+  # Enable privileged mode for this job to support Docker-in-Docker
+  privileged: true
 
 # Deploy to staging server (automatically)
 deploy_staging:
