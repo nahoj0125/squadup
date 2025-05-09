@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url'
 import { connectToDatabase } from './config/mongoose.js'
 import { sessionOptions } from './config/sessionOptions.js'
 import { router } from './routes/router.js'
+import { errorHandler, flashMessages } from './middleware/index.js'
 import helmetConfig from './config/helmetConfig.js'
 import 'dotenv/config'
 
@@ -57,71 +58,13 @@ try {
   app.use(session(sessionOptions))
 
   // Middleware to be executed before the routes.
-  app.use((req, res, next) => {
-    // Flash messages - survives only a round trip.
-    if (req.session.flash) {
-      res.locals.flash = req.session.flash
-      delete req.session.flash
-    }
-
-    // Make user data available to all views
-    res.locals.user = req.session?.user || null
-
-    // Pass the base URL to the views.
-    res.locals.baseURL = baseURL
-
-    next()
-  })
+  app.use(flashMessages(baseURL))
 
   // Register routes.
   app.use('/', router)
 
   // Error handler.
-  app.use((err, req, res, next) => {
-    console.error(err)
-
-    // 401 Not Found.
-    if (err.status === 401) {
-      res
-        .status(401)
-        .sendFile(join(directoryFullName, 'views', 'errors', '401.html'))
-      return
-    }
-
-    // 403 Not Found.
-    if (err.status === 403) {
-      res
-        .status(403)
-        .sendFile(join(directoryFullName, 'views', 'errors', '403.html'))
-      return
-    }
-
-    // 404 Not Found.
-    if (err.status === 404) {
-      res
-        .status(404)
-        .sendFile(join(directoryFullName, 'views', 'errors', '404.html'))
-      return
-    }
-
-    // 500 Internal Server Error (in production, all other errors send this response).
-    if (process.env.NODE_ENV === 'production') {
-      res
-        .status(500)
-        .sendFile(join(directoryFullName, 'views', 'errors', '500.html'))
-      return
-    }
-
-    // ---------------------------------------------------
-    // ⚠️ WARNING: Development Environment Only!
-    //             Detailed error information is provided.
-    // ---------------------------------------------------
-
-    // Render the error page.
-    res
-      .status(err.status || 500)
-      .render('errors/error', { error: err })
-  })
+  app.use(errorHandler)
 
   // Starts the HTTP server listening for connections.
   const server = app.listen(process.env.PORT, () => {
