@@ -3,27 +3,25 @@ services:
     container_name: squadup-app
     build:
       context: .
-      dockerfile: Dockerfile.production
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://mongo:27017/squadup
       - DB_CONNECTION_STRING=mongodb://mongo:27017/squadup
-      - PORT=${DOCKER_PORT:-3000}
-      - BASE_URL=/
-      - SESSION_NAME=X9L73KWD82JZF46M5BPTY
-      - SESSION_SECRET=${SESSION_SECRET}
+      - PORT=8080
+      - SESSION_SECRET=7X4JQL9W2B6MKV83N5YPD
+    ports:
+      - '8080:8080'
     restart: always
     depends_on:
       - mongo
-    ports:
-      - "${DOCKER_PORT:-3000}:3000"
-
   mongo:
     container_name: squadup-mongo
     image: mongo:latest
-    restart: always
     volumes:
-      - mongodb:/data/db
-
+      - mongodb_data:/data/db
+    ports:
+      - '27017:27017'
+    restart: always
 volumes:
-  mongodb:
+  mongodb_data:
+EOF
