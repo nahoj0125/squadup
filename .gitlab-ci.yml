@@ -38,6 +38,38 @@ deploy_staging:
           sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
         fi
         
+        # Install and configure Nginx
+        echo 'Installing and configuring Nginx...'
+        sudo apt-get update
+        sudo apt-get install -y nginx
+        
+        # Create Nginx configuration for the app
+        sudo tee /etc/nginx/sites-available/squadup > /dev/null << 'EOL'
+        server {
+            listen 80;
+            server_name _;
+            
+            location / {
+                proxy_pass http://localhost:8080;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade \$http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host \$host;
+                proxy_set_header X-Real-IP \$remote_addr;
+                proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto \$scheme;
+                proxy_cache_bypass \$http_upgrade;
+            }
+        }
+        EOL
+        
+        # Enable site and disable default site
+        sudo ln -sf /etc/nginx/sites-available/squadup /etc/nginx/sites-enabled/
+        sudo rm -f /etc/nginx/sites-enabled/default
+        
+        # Test and restart Nginx
+        sudo nginx -t && sudo systemctl restart nginx
+        
         # Set up app directory
         mkdir -p ~/app && cd ~/app
         
@@ -49,8 +81,9 @@ deploy_staging:
         fi
         
         # Set environment variables
-        export DOCKER_PORT=${DOCKER_PORT:-8080}
-        export SESSION_SECRET=${SESSION_SECRET:-defaultsecret}
+        export DOCKER_PORT=8080
+        export SESSION_SECRET=${SESSION_SECRET:-'7X4JQL9W2B6MKV83N5YPD'}
+        export NODE_ENV=development
         
         # Create docker-compose.yml file if it doesn't exist
         cat > docker-compose.yml << 'EOL'
@@ -61,16 +94,17 @@ deploy_staging:
             build:
               context: .
             environment:
+              - NODE_ENV=development
               - MONGODB_URI=mongodb://mongo:27017/squadup
               - DB_CONNECTION_STRING=mongodb://mongo:27017/squadup
-              - PORT=\${DOCKER_PORT:-3000}
+              - PORT=3000
               - BASE_URL=/
               - SESSION_NAME=X9L73KWD82JZF46M5BPTY
               - SESSION_SECRET=\${SESSION_SECRET}
             depends_on:
               - mongo
             ports:
-              - \"\${DOCKER_PORT:-3000}:3000\"
+              - '8080:3000'
           mongo:
             container_name: squadup-mongo
             image: mongo:latest
@@ -84,10 +118,13 @@ deploy_staging:
         sudo docker-compose build
         sudo docker-compose down
         sudo docker-compose up -d
+        
+        echo 'Deployment completed successfully'
+        echo 'Application should be available at http://<server-ip>'
       "
   environment:
     name: staging
-    url: http://$STAGING_HOST:${DOCKER_PORT:-8080}
+    url: http://$STAGING_HOST
   only:
     - main
 
@@ -127,6 +164,38 @@ deploy_production:
           sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
         fi
         
+        # Install and configure Nginx
+        echo 'Installing and configuring Nginx...'
+        sudo apt-get update
+        sudo apt-get install -y nginx
+        
+        # Create Nginx configuration for the app
+        sudo tee /etc/nginx/sites-available/squadup > /dev/null << 'EOL'
+        server {
+            listen 80;
+            server_name _;
+            
+            location / {
+                proxy_pass http://localhost:3000;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade \$http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host \$host;
+                proxy_set_header X-Real-IP \$remote_addr;
+                proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto \$scheme;
+                proxy_cache_bypass \$http_upgrade;
+            }
+        }
+        EOL
+        
+        # Enable site and disable default site
+        sudo ln -sf /etc/nginx/sites-available/squadup /etc/nginx/sites-enabled/
+        sudo rm -f /etc/nginx/sites-enabled/default
+        
+        # Test and restart Nginx
+        sudo nginx -t && sudo systemctl restart nginx
+        
         # Set up app directory
         mkdir -p ~/app-production && cd ~/app-production
         
@@ -138,8 +207,7 @@ deploy_production:
         fi
         
         # Set environment variables
-        export DOCKER_PORT=${DOCKER_PORT:-80}
-        export SESSION_SECRET=${SESSION_SECRET:-defaultsecret}
+        export SESSION_SECRET=${SESSION_SECRET:-'7X4JQL9W2B6MKV83N5YPD'}
         export NODE_ENV=production
         
         # Create docker-compose.yml file
@@ -153,14 +221,14 @@ deploy_production:
             environment:
               - MONGODB_URI=mongodb://mongo:27017/squadup
               - DB_CONNECTION_STRING=mongodb://mongo:27017/squadup
-              - PORT=\${DOCKER_PORT:-3000}
+              - PORT=3000
               - BASE_URL=/
               - SESSION_NAME=X9L73KWD82JZF46M5BPTY
               - SESSION_SECRET=\${SESSION_SECRET}
             depends_on:
               - mongo
             ports:
-              - \"\${DOCKER_PORT:-3000}:3000\"
+              - '3000:3000'
           mongo:
             container_name: squadup-mongo
             image: mongo:latest
@@ -183,7 +251,7 @@ deploy_production:
               - NODE_ENV=production
               - MONGODB_URI=mongodb://mongo:27017/squadup
               - DB_CONNECTION_STRING=mongodb://mongo:27017/squadup
-              - PORT=\${DOCKER_PORT:-3000}
+              - PORT=3000
               - BASE_URL=/
               - SESSION_NAME=X9L73KWD82JZF46M5BPTY
               - SESSION_SECRET=\${SESSION_SECRET}
@@ -191,7 +259,7 @@ deploy_production:
             depends_on:
               - mongo
             ports:
-              - \"\${DOCKER_PORT:-3000}:3000\"
+              - '3000:3000'
           mongo:
             container_name: squadup-mongo
             image: mongo:latest
@@ -206,10 +274,13 @@ deploy_production:
         sudo docker-compose -f docker-compose.yml -f docker-compose.production.yml build
         sudo docker-compose -f docker-compose.yml -f docker-compose.production.yml down
         sudo docker-compose -f docker-compose.yml -f docker-compose.production.yml up -d
+        
+        echo 'Production deployment completed successfully'
+        echo 'Application should be available at http://<server-ip>'
       "
   environment:
     name: production
-    url: http://$PRODUCTION_HOST:${DOCKER_PORT:-80}
+    url: http://$PRODUCTION_HOST
   when: manual
   only:
     - main
