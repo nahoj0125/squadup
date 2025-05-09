@@ -3,21 +3,14 @@ stages:
   - test
   - deploy
 
-.before_script_ssh_setup: &before_script_ssh_setup
-  - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
-  - eval $(ssh-agent -s)
-  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
-  - mkdir -p ~/.ssh
-  - chmod 700 ~/.ssh
-  - ssh-keyscan -H $REMOTE_HOST >> ~/.ssh/known_hosts
-  - chmod 644 ~/.ssh/known_hosts
-
+# Build stage
 build-job:
   stage: build
   script:
-    - echo "Bygger projektet..."
+    - echo "Building project..."
     - sleep 2
 
+# Lint test job
 lint-job:
   image: node:20
   stage: test
@@ -26,75 +19,89 @@ lint-job:
     - npm install
     - npm run lint || echo "Lint issues found but continuing..."
 
+# Manual approval step before deployment
 manual_approval_step:
   stage: deploy
   script:
-    - echo "Väntar på manuellt godkännande innan deploy..."
+    - echo "Waiting for manual approval before deployment..."
   when: manual
   only:
     - main
 
+# Production deployment job
 deploy_production_job:
   stage: deploy
   environment:
     name: production
-    url: http://$PRODUCTION_HOST
-  variables:
-    REMOTE_HOST: $PRODUCTION_HOST
-    NODE_ENV: "production"
-    PORT: 8080
-    MONGO_URI: "mongodb://mongo:27017/squadup"
-    SESSION_SECRET: $SESSION_SECRET
-    DOCKER_HOST_PORT: $DOCKER_PORT
-  before_script: *before_script_ssh_setup
-  image: docker:latest
-  services:
-    - docker:dind
+    url: http://localhost
+  image: alpine:latest
   script:
-    - echo "Deploying to production..."
+    - echo "Setting up deployment..."
     - apk add --no-cache openssh-client bash git
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $PRODUCTION_HOST >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
     - git archive --format=tar.gz -o ./repo.tar.gz HEAD
-    - scp -o StrictHostKeyChecking=no ./repo.tar.gz ubuntu@$REMOTE_HOST:~/repo.tar.gz
+    - scp -o StrictHostKeyChecking=no ./repo.tar.gz ubuntu@$PRODUCTION_HOST:~/repo.tar.gz
+    - ssh -o StrictHostKeyChecking=no ubuntu@$PRODUCTION_HOST "mkdir -p ~/app"
+    - ssh -o StrictHostKeyChecking=no ubuntu@$PRODUCTION_HOST "cd ~/app && tar -xzf ~/repo.tar.gz"
+    - ssh -o StrictHostKeyChecking=no ubuntu@$PRODUCTION_HOST "rm ~/repo.tar.gz"
+    - echo "Creating deployment script on server..."
     - |
-      ssh -o StrictHostKeyChecking=no ubuntu@$REMOTE_HOST << EOF
-        mkdir -p ~/app;
-        cd ~/app;
-        tar -xzf ~/repo.tar.gz;
-        rm ~/repo.tar.gz;
-
-        cat > docker-compose.production.yaml << 'DOCKER_EOF'
-        version: '3'
-        services:
-          app:
-            container_name: squadup-app
-            build:
-              context: .
-            environment:
-              - NODE_ENV=production
-              - MONGODB_URI=mongodb://mongo:27017/squadup
-              - PORT=8080
-              - SESSION_SECRET=${SESSION_SECRET:-default_secret}
-            ports:
-              - '8080:8080'
-            restart: always
-            depends_on:
-              - mongo
-          mongo:
-            container_name: squadup-mongo
-            image: mongo:latest
-            volumes:
-              - ./data/db:/data/db
-            restart: always
-        volumes:
-          mongodb_data:
-        DOCKER_EOF
-
-        sudo docker-compose -f docker-compose.production.yaml down;
-        sudo docker-compose -f docker-compose.production.yaml build --no-cache;
-        sudo docker-compose -f docker-compose.production.yaml up -d;
-
-        echo 'Deployment completed';
+      cat > deployment.sh << 'EOF'
+      #!/bin/bash
+      echo "Creating docker-compose file..."
+      cd ~/app
+      cat > docker-compose.production.yaml << 'COMPOSE_EOF'
+      version: '3'
+      services:
+        app:
+          container_name: squadup-app
+          build:
+            context: .
+          environment:
+            - NODE_ENV=production
+            - MONGODB_URI=mongodb://mongo:27017/squadup
+            - DB_CONNECTION_STRING=mongodb://mongo:27017/squadup
+            - PORT=8080
+            - SESSION_SECRET=${SESSION_SECRET:-default_secret}
+          ports:
+            - '8080:8080'
+          restart: always
+          depends_on:
+            - mongo
+        mongo:
+          container_name: squadup-mongo
+          image: mongo:latest
+          volumes:
+            - mongodb_data:/data/db
+          restart: always
+      volumes:
+        mongodb_data:
+      COMPOSE_EOF
+      
+      echo "Stopping previous containers..."
+      sudo docker-compose -f docker-compose.production.yaml down || true
+      
+      echo "Removing existing images..."
+      sudo docker rmi app-app || true
+      
+      echo "Building and starting containers..."
+      sudo docker-compose -f docker-compose.production.yaml build --no-cache
+      sudo docker-compose -f docker-compose.production.yaml up -d
+      
+      echo "Verifying deployment..."
+      sudo docker ps
+      sudo docker logs --tail 10 squadup-app || true
+      
+      echo "Deployment completed successfully!"
       EOF
+    - chmod +x deployment.sh
+    - scp -o StrictHostKeyChecking=no deployment.sh ubuntu@$PRODUCTION_HOST:~/deployment.sh
+    - ssh -o StrictHostKeyChecking=no ubuntu@$PRODUCTION_HOST "chmod +x ~/deployment.sh && ~/deployment.sh"
   only:
     - main
   needs:
