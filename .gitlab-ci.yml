@@ -1,286 +1,116 @@
 stages:
-  - deploy_staging
-  - deploy_production
+  - build
+  - test
+  - deploy
 
-# Deploy to staging server (automatically)
-deploy_staging:
-  stage: deploy_staging
-  image: alpine:latest
+# Build stage
+build-job:
+  stage: build
+  image: node:20
   script:
-    # Install SSH client
-    - apk add --no-cache openssh-client bash git
-    
-    # Set up SSH for secure deployment
-    - mkdir -p ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan "$STAGING_HOST" >> ~/.ssh/known_hosts
-    
-    # Deploy using git clone and docker-compose
-    - |
-      ssh -i ~/.ssh/id_rsa ubuntu@$STAGING_HOST "
-        # Install Docker and Docker Compose if not available
-        if ! command -v docker &> /dev/null; then
-          echo 'Installing Docker...'
-          sudo apt-get update
-          sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-          sudo add-apt-repository 'deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable'
-          sudo apt-get update
-          sudo apt-get install -y docker-ce
-          sudo usermod -aG docker ubuntu
-        fi
-        
-        if ! command -v docker-compose &> /dev/null; then
-          echo 'Installing Docker Compose...'
-          sudo curl -L \"https://github.com/docker/compose/releases/download/v2.24.6/docker-compose-\$(uname -s)-\$(uname -m)\" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-        fi
-        
-        # Install and configure Nginx
-        echo 'Installing and configuring Nginx...'
-        sudo apt-get update
-        sudo apt-get install -y nginx
-        
-        # Create Nginx configuration for the app
-        sudo tee /etc/nginx/sites-available/squadup > /dev/null << 'EOL'
-        server {
-            listen 80;
-            server_name _;
-            
-            location / {
-                proxy_pass http://localhost:8080;
-                proxy_http_version 1.1;
-                proxy_set_header Upgrade \$http_upgrade;
-                proxy_set_header Connection 'upgrade';
-                proxy_set_header Host \$host;
-                proxy_set_header X-Real-IP \$remote_addr;
-                proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto \$scheme;
-                proxy_cache_bypass \$http_upgrade;
-            }
-        }
-        EOL
-        
-        # Enable site and disable default site
-        sudo ln -sf /etc/nginx/sites-available/squadup /etc/nginx/sites-enabled/
-        sudo rm -f /etc/nginx/sites-enabled/default
-        
-        # Test and restart Nginx
-        sudo nginx -t && sudo systemctl restart nginx
-        
-        # Set up app directory
-        mkdir -p ~/app && cd ~/app
-        
-        # Clone or update the repository
-        if [ -d .git ]; then
-          git pull
-        else
-          git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lnu.se/1dv613/student/jp223yp/projects/squadup.git .
-        fi
-        
-        # Set environment variables
-        export DOCKER_PORT=8080
-        export SESSION_SECRET=${SESSION_SECRET:-'7X4JQL9W2B6MKV83N5YPD'}
-        export NODE_ENV=development
-        
-        # Create docker-compose.yml file if it doesn't exist
-        cat > docker-compose.yml << 'EOL'
-        version: '3'
-        services:
-          app:
-            container_name: squadup-app
-            build:
-              context: .
-            environment:
-              - NODE_ENV=development
-              - MONGODB_URI=mongodb://mongo:27017/squadup
-              - DB_CONNECTION_STRING=mongodb://mongo:27017/squadup
-              - PORT=3000
-              - BASE_URL=/
-              - SESSION_NAME=X9L73KWD82JZF46M5BPTY
-              - SESSION_SECRET=\${SESSION_SECRET}
-            depends_on:
-              - mongo
-            ports:
-              - '8080:3000'
-          mongo:
-            container_name: squadup-mongo
-            image: mongo:latest
-            volumes:
-              - ./volumes/mongodb:/data/db
-        volumes:
-          mongodb:
-        EOL
-        
-        # Build and start containers
-        sudo docker-compose build
-        sudo docker-compose down
-        sudo docker-compose up -d
-        
-        echo 'Deployment completed successfully'
-        echo 'Application should be available at http://<server-ip>'
-      "
-  environment:
-    name: staging
-    url: http://$STAGING_HOST
-  only:
+    - echo "Building project..."
+    - npm install
+    - npm run build || echo "No build script found, skipping"
+  artifacts:
+    paths:
+      - dist/
+      - node_modules/
+    expire_in: 1 hour
+
+# Lint test job
+lint-job:
+  image: node:20
+  stage: test
+  script: 
+    - echo "Running linting..."
+    - npm install
+    - npm run lint || echo "No lint script found, skipping"
+  dependencies:
+    - build-job
+
+# Manual approval step before deployment
+manual_approval_step:
+  stage: deploy
+  script: 
+    - echo "Waiting for manual approval before deployment..."
+  when: manual
+  only: 
     - main
 
-# Deploy to production server (manual trigger)
-deploy_production:
-  stage: deploy_production
-  image: alpine:latest
-  script:
-    # Install SSH client
-    - apk add --no-cache openssh-client bash git
-    
-    # Set up SSH for secure deployment
-    - mkdir -p ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan "$PRODUCTION_HOST" >> ~/.ssh/known_hosts
-    
-    # Deploy using git clone and docker-compose
-    - |
-      ssh -i ~/.ssh/id_rsa ubuntu@$PRODUCTION_HOST "
-        # Install Docker and Docker Compose if not available
-        if ! command -v docker &> /dev/null; then
-          echo 'Installing Docker...'
-          sudo apt-get update
-          sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-          sudo add-apt-repository 'deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable'
-          sudo apt-get update
-          sudo apt-get install -y docker-ce
-          sudo usermod -aG docker ubuntu
-        fi
-        
-        if ! command -v docker-compose &> /dev/null; then
-          echo 'Installing Docker Compose...'
-          sudo curl -L \"https://github.com/docker/compose/releases/download/v2.24.6/docker-compose-\$(uname -s)-\$(uname -m)\" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-        fi
-        
-        # Install and configure Nginx
-        echo 'Installing and configuring Nginx...'
-        sudo apt-get update
-        sudo apt-get install -y nginx
-        
-        # Create Nginx configuration for the app
-        sudo tee /etc/nginx/sites-available/squadup > /dev/null << 'EOL'
-        server {
-            listen 80;
-            server_name _;
-            
-            location / {
-                proxy_pass http://localhost:3000;
-                proxy_http_version 1.1;
-                proxy_set_header Upgrade \$http_upgrade;
-                proxy_set_header Connection 'upgrade';
-                proxy_set_header Host \$host;
-                proxy_set_header X-Real-IP \$remote_addr;
-                proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto \$scheme;
-                proxy_cache_bypass \$http_upgrade;
-            }
-        }
-        EOL
-        
-        # Enable site and disable default site
-        sudo ln -sf /etc/nginx/sites-available/squadup /etc/nginx/sites-enabled/
-        sudo rm -f /etc/nginx/sites-enabled/default
-        
-        # Test and restart Nginx
-        sudo nginx -t && sudo systemctl restart nginx
-        
-        # Set up app directory
-        mkdir -p ~/app-production && cd ~/app-production
-        
-        # Clone or update the repository
-        if [ -d .git ]; then
-          git pull
-        else
-          git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lnu.se/1dv613/student/jp223yp/projects/squadup.git .
-        fi
-        
-        # Set environment variables
-        export SESSION_SECRET=${SESSION_SECRET:-'7X4JQL9W2B6MKV83N5YPD'}
-        export NODE_ENV=production
-        
-        # Create docker-compose.yml file
-        cat > docker-compose.yml << 'EOL'
-        version: '3'
-        services:
-          app:
-            container_name: squadup-app
-            build:
-              context: .
-            environment:
-              - MONGODB_URI=mongodb://mongo:27017/squadup
-              - DB_CONNECTION_STRING=mongodb://mongo:27017/squadup
-              - PORT=3000
-              - BASE_URL=/
-              - SESSION_NAME=X9L73KWD82JZF46M5BPTY
-              - SESSION_SECRET=\${SESSION_SECRET}
-            depends_on:
-              - mongo
-            ports:
-              - '3000:3000'
-          mongo:
-            container_name: squadup-mongo
-            image: mongo:latest
-            volumes:
-              - ./volumes/mongodb:/data/db
-        volumes:
-          mongodb:
-        EOL
-        
-        # Create docker-compose.production.yml file
-        cat > docker-compose.production.yml << 'EOL'
-        version: '3'
-        services:
-          app:
-            container_name: squadup-app
-            build:
-              context: .
-              dockerfile: Dockerfile.production
-            environment:
-              - NODE_ENV=production
-              - MONGODB_URI=mongodb://mongo:27017/squadup
-              - DB_CONNECTION_STRING=mongodb://mongo:27017/squadup
-              - PORT=3000
-              - BASE_URL=/
-              - SESSION_NAME=X9L73KWD82JZF46M5BPTY
-              - SESSION_SECRET=\${SESSION_SECRET}
-            restart: always
-            depends_on:
-              - mongo
-            ports:
-              - '3000:3000'
-          mongo:
-            container_name: squadup-mongo
-            image: mongo:latest
-            restart: always
-            volumes:
-              - mongodb:/data/db
-        volumes:
-          mongodb:
-        EOL
-        
-        # Build and start containers using production Dockerfile
-        sudo docker-compose -f docker-compose.yml -f docker-compose.production.yml build
-        sudo docker-compose -f docker-compose.yml -f docker-compose.production.yml down
-        sudo docker-compose -f docker-compose.yml -f docker-compose.production.yml up -d
-        
-        echo 'Production deployment completed successfully'
-        echo 'Application should be available at http://<server-ip>'
-      "
+# Production deployment job
+deploy_production_job:
+  stage: deploy
   environment:
     name: production
-    url: http://$PRODUCTION_HOST
-  when: manual
+    url: https://cscloud8-26.lnu.se
+  image: alpine:latest
+  script:
+    - echo "Deploying to production on $PRODUCTION_HOST..."
+    - apk add --no-cache openssh-client bash
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $PRODUCTION_HOST >> ~/.ssh/known_hosts
+    - echo "Setting up deployment scripts"
+    - >
+      ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@$PRODUCTION_HOST "
+      echo '=== Starting deployment process on production server ===' &&
+      mkdir -p ~/app &&
+      cd ~/app &&
+      if [ -d .git ]; then 
+        echo 'Updating existing repository...' &&
+        git fetch --all && 
+        git reset --hard origin/main; 
+      else 
+        echo 'Cloning repository...' &&
+        git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lnu.se/1dv613/student/jp223yp/projects/squadup.git .;
+      fi &&
+      echo 'Repository updated' &&
+      
+      # Install Docker Compose if needed
+      if ! command -v docker-compose &> /dev/null; then
+        echo 'Installing Docker Compose...' &&
+        sudo curl -L \"https://github.com/docker/compose/releases/download/v2.24.6/docker-compose-\$(uname -s)-\$(uname -m)\" -o /usr/local/bin/docker-compose &&
+        sudo chmod +x /usr/local/bin/docker-compose;
+      fi &&
+      
+      echo 'Creating docker-compose file' &&
+      echo 'version: \"3\"' > docker-compose.yml &&
+      echo 'services:' >> docker-compose.yml &&
+      echo '  app:' >> docker-compose.yml &&
+      echo '    container_name: squadup-app' >> docker-compose.yml &&
+      echo '    build:' >> docker-compose.yml &&
+      echo '      context: .' >> docker-compose.yml &&
+      echo '    environment:' >> docker-compose.yml &&
+      echo '      - NODE_ENV=production' >> docker-compose.yml &&
+      echo '      - MONGODB_URI=mongodb://mongo:27017/squadup' >> docker-compose.yml &&
+      echo '      - PORT=8080' >> docker-compose.yml &&
+      echo '      - SESSION_SECRET=${SESSION_SECRET:-default_secret}' >> docker-compose.yml &&
+      echo '    ports:' >> docker-compose.yml &&
+      echo '      - \"8080:8080\"' >> docker-compose.yml &&
+      echo '    restart: always' >> docker-compose.yml &&
+      echo '    depends_on:' >> docker-compose.yml &&
+      echo '      - mongo' >> docker-compose.yml &&
+      echo '  mongo:' >> docker-compose.yml &&
+      echo '    container_name: squadup-mongo' >> docker-compose.yml &&
+      echo '    image: mongo:latest' >> docker-compose.yml &&
+      echo '    volumes:' >> docker-compose.yml &&
+      echo '      - ./data/db:/data/db' >> docker-compose.yml &&
+      echo '    restart: always' >> docker-compose.yml &&
+      
+      echo 'Building and starting containers' &&
+      sudo docker-compose down &&
+      sudo docker-compose build --no-cache &&
+      sudo docker-compose up -d &&
+      
+      echo 'Verifying deployment' &&
+      sudo docker ps &&
+      sudo docker logs --tail 10 squadup-app &&
+      
+      echo 'Deployment completed - Application available at https://cscloud8-26.lnu.se'
+      "
   only:
     - main
+  needs:
+    - manual_approval_step
