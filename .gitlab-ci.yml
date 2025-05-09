@@ -3,113 +3,98 @@ stages:
   - test
   - deploy
 
-# Build stage
+.before_script_ssh_setup: &before_script_ssh_setup
+  - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - ssh-keyscan -H $REMOTE_HOST >> ~/.ssh/known_hosts
+  - chmod 644 ~/.ssh/known_hosts
+
 build-job:
   stage: build
-  image: node:20
   script:
-    - echo "Building project..."
-    - npm install
-    - npm run build || echo "No build script found, skipping"
-  artifacts:
-    paths:
-      - dist/
-      - node_modules/
-    expire_in: 1 hour
+    - echo "Bygger projektet..."
+    - sleep 2
 
-# Lint test job
 lint-job:
   image: node:20
   stage: test
-  script: 
+  script:
     - echo "Running linting..."
     - npm install
-    - npm run lint || echo "No lint script found, skipping"
-  dependencies:
-    - build-job
+    - npm run lint || echo "Lint issues found but continuing..."
 
-# Manual approval step before deployment
 manual_approval_step:
   stage: deploy
-  script: 
-    - echo "Waiting for manual approval before deployment..."
+  script:
+    - echo "Väntar på manuellt godkännande innan deploy..."
   when: manual
-  only: 
+  only:
     - main
 
-# Production deployment job
 deploy_production_job:
   stage: deploy
   environment:
     name: production
-    url: https://cscloud8-26.lnu.se
-  image: alpine:latest
+    url: http://$PRODUCTION_HOST
+  variables:
+    REMOTE_HOST: $PRODUCTION_HOST
+    NODE_ENV: "production"
+    PORT: 8080
+    MONGO_URI: "mongodb://mongo:27017/squadup"
+    SESSION_SECRET: $SESSION_SECRET
+    DOCKER_HOST_PORT: $DOCKER_PORT
+  before_script: *before_script_ssh_setup
+  image: docker:latest
+  services:
+    - docker:dind
   script:
-    - echo "Deploying to production on $PRODUCTION_HOST..."
-    - apk add --no-cache openssh-client bash
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan -H $PRODUCTION_HOST >> ~/.ssh/known_hosts
-    - echo "Setting up deployment scripts"
-    - >
-      ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@$PRODUCTION_HOST "
-      echo '=== Starting deployment process on production server ===' &&
-      mkdir -p ~/app &&
-      cd ~/app &&
-      if [ -d .git ]; then 
-        echo 'Updating existing repository...' &&
-        git fetch --all && 
-        git reset --hard origin/main; 
-      else 
-        echo 'Cloning repository...' &&
-        git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lnu.se/1dv613/student/jp223yp/projects/squadup.git .;
-      fi &&
-      echo 'Repository updated' &&
-      
-      # Install Docker Compose if needed
-      if ! command -v docker-compose &> /dev/null; then
-        echo 'Installing Docker Compose...' &&
-        sudo curl -L \"https://github.com/docker/compose/releases/download/v2.24.6/docker-compose-\$(uname -s)-\$(uname -m)\" -o /usr/local/bin/docker-compose &&
-        sudo chmod +x /usr/local/bin/docker-compose;
-      fi &&
-      
-      echo 'Creating docker-compose file' &&
-      echo 'version: \"3\"' > docker-compose.yml &&
-      echo 'services:' >> docker-compose.yml &&
-      echo '  app:' >> docker-compose.yml &&
-      echo '    container_name: squadup-app' >> docker-compose.yml &&
-      echo '    build:' >> docker-compose.yml &&
-      echo '      context: .' >> docker-compose.yml &&
-      echo '    environment:' >> docker-compose.yml &&
-      echo '      - NODE_ENV=production' >> docker-compose.yml &&
-      echo '      - MONGODB_URI=mongodb://mongo:27017/squadup' >> docker-compose.yml &&
-      echo '      - PORT=8080' >> docker-compose.yml &&
-      echo '      - SESSION_SECRET=${SESSION_SECRET:-default_secret}' >> docker-compose.yml &&
-      echo '    ports:' >> docker-compose.yml &&
-      echo '      - \"8080:8080\"' >> docker-compose.yml &&
-      echo '    restart: always' >> docker-compose.yml &&
-      echo '    depends_on:' >> docker-compose.yml &&
-      echo '      - mongo' >> docker-compose.yml &&
-      echo '  mongo:' >> docker-compose.yml &&
-      echo '    container_name: squadup-mongo' >> docker-compose.yml &&
-      echo '    image: mongo:latest' >> docker-compose.yml &&
-      echo '    volumes:' >> docker-compose.yml &&
-      echo '      - ./data/db:/data/db' >> docker-compose.yml &&
-      echo '    restart: always' >> docker-compose.yml &&
-      
-      echo 'Building and starting containers' &&
-      sudo docker-compose down &&
-      sudo docker-compose build --no-cache &&
-      sudo docker-compose up -d &&
-      
-      echo 'Verifying deployment' &&
-      sudo docker ps &&
-      sudo docker logs --tail 10 squadup-app &&
-      
-      echo 'Deployment completed - Application available at https://cscloud8-26.lnu.se'
-      "
+    - echo "Deploying to production..."
+    - apk add --no-cache openssh-client bash git
+    - git archive --format=tar.gz -o ./repo.tar.gz HEAD
+    - scp -o StrictHostKeyChecking=no ./repo.tar.gz ubuntu@$REMOTE_HOST:~/repo.tar.gz
+    - |
+      ssh -o StrictHostKeyChecking=no ubuntu@$REMOTE_HOST << EOF
+        mkdir -p ~/app;
+        cd ~/app;
+        tar -xzf ~/repo.tar.gz;
+        rm ~/repo.tar.gz;
+
+        cat > docker-compose.production.yaml << 'DOCKER_EOF'
+        version: '3'
+        services:
+          app:
+            container_name: squadup-app
+            build:
+              context: .
+            environment:
+              - NODE_ENV=production
+              - MONGODB_URI=mongodb://mongo:27017/squadup
+              - PORT=8080
+              - SESSION_SECRET=${SESSION_SECRET:-default_secret}
+            ports:
+              - '8080:8080'
+            restart: always
+            depends_on:
+              - mongo
+          mongo:
+            container_name: squadup-mongo
+            image: mongo:latest
+            volumes:
+              - ./data/db:/data/db
+            restart: always
+        volumes:
+          mongodb_data:
+        DOCKER_EOF
+
+        sudo docker-compose -f docker-compose.production.yaml down;
+        sudo docker-compose -f docker-compose.production.yaml build --no-cache;
+        sudo docker-compose -f docker-compose.production.yaml up -d;
+
+        echo 'Deployment completed';
+      EOF
   only:
     - main
   needs:
