@@ -52,9 +52,23 @@ deploy_production_job:
     - docker:dind
   script:
     - echo "Deploying to production..."
-    - docker compose -f docker-compose.production.yaml down || true
-    - docker compose -f docker-compose.production.yaml rm -f || true
+    # List running containers for debugging
+    - docker ps
+    # Stop ALL running containers to ensure clean slate
+    - docker stop $(docker ps -q) || true
+    # Remove ALL stopped containers
+    - docker rm $(docker ps -a -q) || true
+    # Ensure the mongo container is really gone
+    - docker rm -f 8559f8b52ec2 || true
+    - docker rm -f squadup-mongo || true
+    # Clean up system
+    - docker system prune -f
+    # Start with fresh containers
     - docker compose -f docker-compose.production.yaml up -d --build
+    # Verify deployment
+    - echo "Waiting for containers to start..."
+    - sleep 10
+    - docker ps
   only:
     - main
   needs:
