@@ -8,7 +8,6 @@ build-job:
   stage: build
   script:
     - echo "Building project..."
-    - sleep 2
 
 # Lint test job
 lint-job:
@@ -28,80 +27,71 @@ manual_approval_step:
   only:
     - main
 
-# Production deployment job
+# Production deployment job - simplified approach
 deploy_production_job:
   stage: deploy
   environment:
     name: production
-    url: http://localhost
-  image: alpine:latest
-  script:
-    - echo "Setting up deployment..."
-    - apk add --no-cache openssh-client bash git
+    url: http://localhost:8080
+  image: docker:20
+  services:
+    - docker:20-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+  before_script:
+    - apk add --no-cache openssh-client bash
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan -H $PRODUCTION_HOST >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-    - git archive --format=tar.gz -o ./repo.tar.gz HEAD
-    - scp -o StrictHostKeyChecking=no ./repo.tar.gz ubuntu@$PRODUCTION_HOST:~/repo.tar.gz
-    - ssh -o StrictHostKeyChecking=no ubuntu@$PRODUCTION_HOST "mkdir -p ~/app"
-    - ssh -o StrictHostKeyChecking=no ubuntu@$PRODUCTION_HOST "cd ~/app && tar -xzf ~/repo.tar.gz"
-    - ssh -o StrictHostKeyChecking=no ubuntu@$PRODUCTION_HOST "rm ~/repo.tar.gz"
-    - echo "Creating deployment script on server..."
+  script:
+    # Copy your docker-compose.production.yaml file (without the EOF artifact)
+    - sed '$ d' docker-compose.production.yaml > fixed-docker-compose.yaml
+    
+    # Copy files to the server
+    - scp -o StrictHostKeyChecking=no fixed-docker-compose.yaml ubuntu@$PRODUCTION_HOST:~/docker-compose.yaml
+    - scp -o StrictHostKeyChecking=no Dockerfile ubuntu@$PRODUCTION_HOST:~/Dockerfile
+    
+    # Archive and transfer the application
+    - tar --exclude='node_modules' --exclude='.git' -czf app.tar.gz .
+    - scp -o StrictHostKeyChecking=no app.tar.gz ubuntu@$PRODUCTION_HOST:~/app.tar.gz
+    
+    # Deploy on the server
     - |
-      cat > deployment.sh << 'EOF'
-      #!/bin/bash
-      echo "Creating docker-compose file..."
-      cd ~/app
-      cat > docker-compose.production.yaml << 'COMPOSE_EOF'
-      version: '3'
-      services:
-        app:
-          container_name: squadup-app
-          build:
-            context: .
-          environment:
-            - NODE_ENV=production
-            - MONGODB_URI=mongodb://mongo:27017/squadup
-            - DB_CONNECTION_STRING=mongodb://mongo:27017/squadup
-            - PORT=8080
-            - SESSION_SECRET=${SESSION_SECRET:-default_secret}
-          ports:
-            - '8080:8080'
-          restart: always
-          depends_on:
-            - mongo
-        mongo:
-          container_name: squadup-mongo
-          image: mongo:latest
-          volumes:
-            - mongodb_data:/data/db
-          restart: always
-      volumes:
-        mongodb_data:
-      COMPOSE_EOF
-      
-      echo "Stopping previous containers..."
-      sudo docker-compose -f docker-compose.production.yaml down || true
-      
-      echo "Removing existing images..."
-      sudo docker rmi app-app || true
-      
-      echo "Building and starting containers..."
-      sudo docker-compose -f docker-compose.production.yaml build --no-cache
-      sudo docker-compose -f docker-compose.production.yaml up -d
-      
-      echo "Verifying deployment..."
-      sudo docker ps
-      sudo docker logs --tail 10 squadup-app || true
-      
-      echo "Deployment completed successfully!"
-      EOF
-    - chmod +x deployment.sh
-    - scp -o StrictHostKeyChecking=no deployment.sh ubuntu@$PRODUCTION_HOST:~/deployment.sh
-    - ssh -o StrictHostKeyChecking=no ubuntu@$PRODUCTION_HOST "chmod +x ~/deployment.sh && ~/deployment.sh"
+      ssh -o StrictHostKeyChecking=no ubuntu@$PRODUCTION_HOST "
+        # Extract application files
+        mkdir -p ~/app
+        tar -xzf ~/app.tar.gz -C ~/app
+        rm ~/app.tar.gz
+        
+        # Copy deployment files
+        cp ~/Dockerfile ~/app/
+        cp ~/docker-compose.yaml ~/app/
+        
+        # Deploy with Docker Compose
+        cd ~/app
+        
+        # Set environment variables
+        export SESSION_SECRET='${SESSION_SECRET}'
+        export DOCKER_PORT=8080
+        
+        # Stop previous containers
+        docker-compose -f docker-compose.yaml down || true
+        
+        # Build and start
+        docker-compose -f docker-compose.yaml build --no-cache
+        docker-compose -f docker-compose.yaml up -d
+        
+        # Verify deployment
+        docker ps
+        docker logs --tail 10 squadup-app || true
+        
+        echo 'Deployment completed successfully!'
+      "
   only:
     - main
   needs:
