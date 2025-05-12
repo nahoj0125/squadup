@@ -9,90 +9,44 @@ build-job:
   script:
     - echo "Building project..."
 
-# Lint test job
-lint-job:
+# Test job
+test-job:
   image: node:20
   stage: test
   script:
-    - echo "Running linting..."
     - npm install
     - npm run lint || echo "Lint issues found but continuing..."
 
-# Manual approval step before deployment
-manual_approval_step:
+# Deploy job
+deploy:
   stage: deploy
-  script:
-    - echo "Waiting for manual approval before deployment..."
-  when: manual
-  only:
-    - main
-
-# Production deployment job - simplified approach
-deploy_production_job:
-  stage: deploy
-  environment:
-    name: production
-    url: http://localhost:8080
-  image: docker:20
-  services:
-    - docker:20-dind
-  variables:
-    DOCKER_HOST: tcp://docker:2376
-    DOCKER_TLS_CERTDIR: "/certs"
-    DOCKER_TLS_VERIFY: 1
-    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+  image: alpine:latest
   before_script:
-    - apk add --no-cache openssh-client bash
+    - apk add --no-cache openssh-client
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan -H $PRODUCTION_HOST >> ~/.ssh/known_hosts
   script:
-    # Copy your docker-compose.production.yaml file (without the EOF artifact)
-    - sed '$ d' docker-compose.production.yaml > fixed-docker-compose.yaml
+    # Make a simple archive of the project
+    - tar --exclude='node_modules' --exclude='.git' --exclude='*.tar.gz' -czf app.tar.gz .
     
-    # Copy files to the server
-    - scp -o StrictHostKeyChecking=no fixed-docker-compose.yaml ubuntu@$PRODUCTION_HOST:~/docker-compose.yaml
-    - scp -o StrictHostKeyChecking=no Dockerfile ubuntu@$PRODUCTION_HOST:~/Dockerfile
-    
-    # Archive and transfer the application
-    - tar --exclude='node_modules' --exclude='.git' -czf app.tar.gz .
+    # Copy to server and deploy
     - scp -o StrictHostKeyChecking=no app.tar.gz ubuntu@$PRODUCTION_HOST:~/app.tar.gz
-    
-    # Deploy on the server
-    - |
-      ssh -o StrictHostKeyChecking=no ubuntu@$PRODUCTION_HOST "
-        # Extract application files
-        mkdir -p ~/app
-        tar -xzf ~/app.tar.gz -C ~/app
-        rm ~/app.tar.gz
-        
-        # Copy deployment files
-        cp ~/Dockerfile ~/app/
-        cp ~/docker-compose.yaml ~/app/
-        
-        # Deploy with Docker Compose
+    - ssh -o StrictHostKeyChecking=no ubuntu@$PRODUCTION_HOST "
+        cd ~
+        rm -rf ~/app_temp
+        mkdir -p ~/app_temp
+        tar -xzf app.tar.gz -C ~/app_temp
+        rm -rf ~/app
+        mv ~/app_temp ~/app
         cd ~/app
-        
-        # Set environment variables
-        export SESSION_SECRET='${SESSION_SECRET}'
-        export DOCKER_PORT=8080
-        
-        # Stop previous containers
-        docker-compose -f docker-compose.yaml down || true
-        
-        # Build and start
-        docker-compose -f docker-compose.yaml build --no-cache
-        docker-compose -f docker-compose.yaml up -d
-        
-        # Verify deployment
+        docker-compose down
+        docker-compose build --no-cache
+        docker-compose up -d
         docker ps
-        docker logs --tail 10 squadup-app || true
-        
-        echo 'Deployment completed successfully!'
       "
   only:
     - main
-  needs:
-    - manual_approval_step
+  when: manual
