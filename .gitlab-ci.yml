@@ -1,3 +1,30 @@
+services:
+  app:
+    container_name: squadup-app
+    build:
+      context: .
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongo:27017/squadup
+      - DB_CONNECTION_STRING=mongodb://mongo:27017/squadup
+      - PORT=8080
+      - SESSION_SECRET=7X4JQL9W2B6MKV83N5YPD
+    ports:
+      - '8080:8080'
+    restart: always
+    depends_on:
+      - mongo
+  mongo:
+    container_name: squadup-mongo
+    image: mongo:latest
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - '27017:27017'
+    restart: always
+volumes:
+  mongodb_data: {}
+
 stages:
   - build
   - test
@@ -57,7 +84,7 @@ deploy_production_job:
     - scp -o StrictHostKeyChecking=no Dockerfile ubuntu@$PRODUCTION_HOST:~/Dockerfile
     
     # Archive and transfer the application
-    - tar --exclude='node_modules' --exclude='.git' -czf app.tar.gz .
+    - tar --exclude='node_modules' --exclude='.git' --exclude='app.tar.gz' -czf app.tar.gz .
     - scp -o StrictHostKeyChecking=no app.tar.gz ubuntu@$PRODUCTION_HOST:~/app.tar.gz
     
     # Deploy on the server
