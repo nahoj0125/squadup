@@ -34,7 +34,8 @@ deploy:
     
     # Copy to server and deploy
     - scp -o StrictHostKeyChecking=no app.tar.gz ubuntu@$PRODUCTION_HOST:~/app.tar.gz
-    - ssh -o StrictHostKeyChecking=no ubuntu@$PRODUCTION_HOST "
+    - |
+      ssh -o StrictHostKeyChecking=no ubuntu@$PRODUCTION_HOST '
         cd ~
         rm -rf ~/app_temp
         mkdir -p ~/app_temp
@@ -46,7 +47,7 @@ deploy:
         docker-compose build --no-cache
         docker-compose up -d
         docker ps
-      "
+      '
   only:
     - main
   when: manual
