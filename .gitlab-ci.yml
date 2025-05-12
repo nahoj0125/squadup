@@ -17,7 +17,7 @@ build-job:
   stage: build
   script:
     - npm install
-    - npm run build
+    - npm run dev
 
 lint-job:
   image: node:20 # Use the same Node.js image for consistency
