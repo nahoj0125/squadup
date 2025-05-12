@@ -1,53 +1,96 @@
 stages:
-  - build
-  - test
-  - deploy
+  - deploy_staging
+  - deploy_production
 
-# Build stage
-build-job:
-  stage: build
-  script:
-    - echo "Building project..."
-
-# Test job
-test-job:
-  image: node:20
-  stage: test
-  script:
-    - npm install
-    - npm run lint || echo "Lint issues found but continuing..."
-
-# Deploy job
-deploy:
-  stage: deploy
+# Deploy to staging server (automatically)
+deploy_staging:
+  stage: deploy_staging
   image: alpine:latest
-  before_script:
-    - apk add --no-cache openssh-client
+  script:
+    - apk add --no-cache openssh-client bash git
     - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan -H $PRODUCTION_HOST >> ~/.ssh/known_hosts
-  script:
-    # Make a simple archive of the project
-    - tar --exclude='node_modules' --exclude='.git' --exclude='*.tar.gz' -czf app.tar.gz .
-    
-    # Copy to server and deploy
-    - scp -o StrictHostKeyChecking=no app.tar.gz ubuntu@$PRODUCTION_HOST:~/app.tar.gz
+    - ssh-keyscan "$STAGING_HOST" >> ~/.ssh/known_hosts
     - |
-      ssh -o StrictHostKeyChecking=no ubuntu@$PRODUCTION_HOST '
-        cd ~
-        rm -rf ~/app_temp
-        mkdir -p ~/app_temp
-        tar -xzf app.tar.gz -C ~/app_temp
-        rm -rf ~/app
-        mv ~/app_temp ~/app
-        cd ~/app
-        docker-compose down
-        docker-compose build --no-cache
-        docker-compose up -d
-        docker ps
-      '
+      ssh -i ~/.ssh/id_rsa ubuntu@$STAGING_HOST "
+        # Install Docker if not available
+        if ! command -v docker &> /dev/null; then
+          sudo apt-get update
+          sudo apt-get install -y docker-ce
+        fi
+
+        # Install Docker Compose if not available
+        if ! command -v docker-compose &> /dev/null; then
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.6/docker-compose-\$(uname -s)-\$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+        fi
+
+        # Set up Nginx only if not already configured
+        if ! [ -f /etc/nginx/sites-available/squadup ]; then
+          sudo apt-get update
+          sudo apt-get install -y nginx
+          sudo tee /etc/nginx/sites-available/squadup > /dev/null << 'EOL'
+          server {
+              listen 80;
+              server_name _;
+              location / {
+                  proxy_pass http://localhost:3000;
+                  proxy_set_header Host $host;
+              }
+          }
+          EOL
+          sudo ln -sf /etc/nginx/sites-available/squadup /etc/nginx/sites-enabled/
+          sudo nginx -t && sudo systemctl restart nginx
+        fi
+
+        # Clone or update the repo
+        mkdir -p ~/app && cd ~/app
+        if [ -d .git ]; then
+          git pull
+        else
+          git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lnu.se/1dv613/student/jp223yp/projects/squadup.git .
+        fi
+
+        # Build and start the application
+        sudo docker-compose down
+        sudo docker-compose build --no-cache
+        sudo docker-compose up -d
+      "
+  environment:
+    name: staging
+    url: http://$STAGING_HOST
   only:
     - main
+
+# Deploy to production server (manual trigger)
+deploy_production:
+  stage: deploy_production
+  image: alpine:latest
+  script:
+    - apk add --no-cache openssh-client bash git
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan "$PRODUCTION_HOST" >> ~/.ssh/known_hosts
+    - |
+      ssh -i ~/.ssh/id_rsa ubuntu@$PRODUCTION_HOST "
+        # Same steps as staging but for production
+        mkdir -p ~/app-production && cd ~/app-production
+        if [ -d .git ]; then
+          git pull
+        else
+          git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lnu.se/1dv613/student/jp223yp/projects/squadup.git .
+        fi
+
+        # Build and run containers
+        sudo docker-compose -f docker-compose.yml -f docker-compose.production.yml build --no-cache
+        sudo docker-compose -f docker-compose.yml -f docker-compose.production.yml down
+        sudo docker-compose -f docker-compose.yml -f docker-compose.production.yml up -d
+      "
+  environment:
+    name: production
+    url: http://$PRODUCTION_HOST
   when: manual
+  only:
+    - main
