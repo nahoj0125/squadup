@@ -13,13 +13,14 @@ stages:
   - chmod 644 ~/.ssh/known_hosts
 
 build-job:
+  image: node:20 # Use a Node.js image with npm pre-installed
   stage: build
   script:
     - npm install
     - npm run build
 
 lint-job:
-  image: node:20
+  image: node:20 # Use the same Node.js image for consistency
   stage: test
   script:
     - npm install
