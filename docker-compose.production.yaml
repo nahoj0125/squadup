@@ -1,3 +1,4 @@
+
 services:
   app:
     container_name: squadup-app
@@ -23,4 +24,5 @@ services:
       - '27017:27017'
     restart: always
 volumes:
-  mongodb_data: {}
+  mongodb_data:
+EOF
