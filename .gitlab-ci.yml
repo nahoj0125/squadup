@@ -52,6 +52,8 @@ deploy_production_job:
     - docker:dind
   script:
     - echo "Deploying to production..."
+    - docker compose -f docker-compose.production.yaml down || true
+    - docker compose -f docker-compose.production.yaml rm -f || true
     - docker compose -f docker-compose.production.yaml up -d --build
   only:
     - main
