@@ -42,8 +42,7 @@ describe('MessageModel', () => {
       password: 'password12345'
     })
 
-    const savedUser = await user.save()
-    return savedUser
+    return await user.save()
   }
 
   /**
@@ -61,8 +60,7 @@ describe('MessageModel', () => {
       members: [user._id]
     })
 
-    const savedGroup = await group.save()
-    return savedGroup
+    return await group.save()
   }
 
   describe('Validate schema', () => {

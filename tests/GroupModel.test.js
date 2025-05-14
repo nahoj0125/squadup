@@ -40,8 +40,7 @@ describe('GroupModel', () => {
       password: 'password12345'
     })
 
-    const savedUser = await user.save()
-    return savedUser
+    return await user.save()
   }
 
   describe('Validate schema', () => {
