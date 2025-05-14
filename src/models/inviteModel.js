@@ -33,5 +33,7 @@ const schema = new mongoose.Schema({
   versionKey: false
 })
 
+schema.index({ group: 1, invitedUser: 1 }, { unique: true })
+
 schema.add(BASE_SCHEMA)
 export const InvitationModel = mongoose.model('Invitation', schema)
