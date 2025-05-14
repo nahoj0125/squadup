@@ -495,4 +495,119 @@ describe('AvailabilityModel', () => {
       expect(savedAvailability.timeSlots[0].end).toEqual(timeNowPlusFourHours)
     })
   })
+
+  describe('Query operations', () => {
+    test('should fins availability by user and group', async () => {
+      const user1 = await createTestUser('testuser1', 'testuser1@example.com')
+      const user2 = await createTestUser('testuser2', 'testuser2@example.com')
+      const group1 = await createTestGroup(user1, 'Group 1')
+      const group2 = await createTestGroup(user1, 'Group 2')
+
+      group1.members.push(user2._id)
+      group2.members.push(user2._id)
+      await group1.save()
+      await group2.save()
+
+      const timeNow = new Date()
+      const timeNowPlusTwoHours = new Date(timeNow)
+      timeNowPlusTwoHours.setHours(timeNow.getHours() + 2)
+
+      await new AvailabilityModel({
+        user: user1._id,
+        group: group1._id,
+        timeSlots: [
+          {
+            start: timeNow,
+            end: timeNowPlusTwoHours
+          }
+        ]
+      }).save()
+
+      await new AvailabilityModel({
+        user: user1._id,
+        group: group2._id,
+        timeSlots: [
+          {
+            start: timeNow,
+            end: timeNowPlusTwoHours
+          }
+        ]
+      }).save()
+
+      await new AvailabilityModel({
+        user: user2._id,
+        group: group1._id,
+        timeSlots: [
+          {
+            start: timeNow,
+            end: timeNowPlusTwoHours
+          }
+        ]
+      }).save()
+
+      const found = await AvailabilityModel.findOne({
+        user: user1._id,
+        group: group1.id
+      })
+
+      expect(found).toBeDefined()
+      expect(found.user.toString()).toBe(user1._id.toString())
+      expect(found.group.toString()).toBe(group1._id.toString())
+    })
+
+    test('should find all availabilities for a specific group', async () => {
+      const user1 = await createTestUser('testuser1', 'testuser1@example.com')
+      const user2 = await createTestUser('testuser2', 'testuser2@example.com')
+      const user3 = await createTestUser('testuser3', 'testuser3@example.com')
+      const group = await createTestGroup(user1, 'Group 1')
+
+      group.members.push(user2._id, user3._id)
+
+      const timeNow = new Date()
+      const timeNowPlusTwoHours = new Date(timeNow)
+      timeNowPlusTwoHours.setHours(timeNow.getHours() + 2)
+
+      await new AvailabilityModel({
+        user: user1._id,
+        group: group._id,
+        timeSlots: [
+          {
+            start: timeNow,
+            end: timeNowPlusTwoHours
+          }
+        ]
+      }).save()
+
+      await new AvailabilityModel({
+        user: user2._id,
+        group: group._id,
+        timeSlots: [
+          {
+            start: timeNow,
+            end: timeNowPlusTwoHours
+          }
+        ]
+      }).save()
+
+      await new AvailabilityModel({
+        user: user3._id,
+        group: group._id,
+        timeSlots: [
+          {
+            start: timeNow,
+            end: timeNowPlusTwoHours
+          }
+        ]
+      }).save()
+
+      const availabilityFound = await AvailabilityModel.find({
+        group: group._id
+      })
+
+      expect(availabilityFound).toHaveLength(3)
+      expect(availabilityFound.map(a => a.user.toString())).toContain(user1._id.toString())
+      expect(availabilityFound.map(a => a.user.toString())).toContain(user2._id.toString())
+      expect(availabilityFound.map(a => a.user.toString())).toContain(user3._id.toString())
+    })
+  })
 })
