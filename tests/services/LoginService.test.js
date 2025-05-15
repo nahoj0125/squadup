@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import { LoginService } from '../src/services/LoginService.js'
-import { UserModel } from '../src/models/UserModel.js'
+import { LoginService } from '../../src/services/LoginService.js'
+import { UserModel } from '../../src/models/UserModel.js'
 import { beforeAll, describe } from '@jest/globals'
 
 let mongoServer
@@ -91,7 +91,7 @@ describe('LoginService', () => {
     })
   })
 
-  describe('Integration', () => {
+  describe('Integration between methods', () => {
     test('should authenticate user and then get user by id', async () => {
       const username = 'testuser'
       const password = 'password12345'

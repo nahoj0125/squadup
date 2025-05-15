@@ -1,8 +1,8 @@
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import { InvitationModel } from '../src/models/inviteModel.js'
-import { UserModel } from '../src/models/UserModel.js'
-import { GroupModel } from '../src/models/groupModel.js'
+import { InvitationModel } from '../../src/models/inviteModel.js'
+import { UserModel } from '../../src/models/UserModel.js'
+import { GroupModel } from '../../src/models/groupModel.js'
 
 let mongoServer
 

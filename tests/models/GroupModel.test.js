@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import { GroupModel } from '../src/models/groupModel.js'
-import { UserModel } from '../src/models/UserModel.js'
+import { GroupModel } from '../../src/models/groupModel.js'
+import { UserModel } from '../../src/models/UserModel.js'
 import { expect } from '@jest/globals'
 
 let mongoServer

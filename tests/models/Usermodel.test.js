@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import { UserModel } from '../src/models/UserModel.js'
+import { UserModel } from '../../src/models/UserModel.js'
 import bcrypt from 'bcrypt'
 
 let mongoServer

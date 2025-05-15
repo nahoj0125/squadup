@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import { RegisterService } from '../src/services/RegisterService.js'
-import { UserModel } from '../src/models/UserModel.js'
+import { RegisterService } from '../../src/services/RegisterService.js'
+import { UserModel } from '../../src/models/UserModel.js'
 import { describe } from '@jest/globals'
 
 let mongoServer
