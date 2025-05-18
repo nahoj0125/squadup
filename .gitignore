@@ -205,3 +205,6 @@ volumes/
 /data/
 */data/
 mongodb/
+
+# Lock files
+package-lock.json

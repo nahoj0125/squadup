@@ -11,7 +11,6 @@ const schema = new mongoose.Schema({
   content: {
     type: String,
     required: [true, 'A message is required'],
-    trim: true,
     maxlength: [2000, 'A message cannot be longer than 2000 characters.']
   },
   sender: {
