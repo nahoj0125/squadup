@@ -33,6 +33,14 @@ manual_approval_step:
   only:
     - main
 
+test-job:
+  image: node:20
+  stage: test
+  script:
+  - echo "Running tests..."
+  - npm install
+  - npm test
+
 deploy_production_job:
   stage: deploy
   environment:
@@ -73,3 +81,5 @@ deploy_production_job:
     - main
   needs:
     - manual_approval_step
+    - test-job
+    
