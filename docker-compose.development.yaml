@@ -1,15 +1,35 @@
+version: '3.8'
 services:
   app:
+    container_name: squadup-app
     build:
-      dockerfile: Dockerfile
+      context: .
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/squadup
+      - DB_CONNECTION_STRING=mongodb://mongo:27017/squadup
+      - PORT=3000
+      - BASE_URL=/
+      - SESSION_SECRET=7X4JQL9W2B6MKV83N5YPD
     volumes:
       - ./:/usr/src/app
       - /usr/src/app/node_modules
-    environment:
-      - NODE_ENV=development
-      - BASE_URL=/
     command: npm run dev
-
-  mongo:
     ports:
-      - "27017:27017"  # Expose MongoDB port for local development tools
+      - '3000:3000'
+      - '9229:9229'  # For debugging
+    restart: always
+    depends_on:
+      - mongo
+  
+  mongo:
+    container_name: squadup-mongo
+    image: mongo:latest
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - '27017:27017'
+    restart: always
+
+volumes:
+  mongodb_data:

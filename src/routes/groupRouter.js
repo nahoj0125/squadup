@@ -20,6 +20,9 @@ router.post('/:id/messages', (req, res, next) => controller.createMessage(req, r
 router.get('/:id/invite', (req, res, next) => controller.showInviteForm(req, res, next))
 router.post('/:id/invite', (req, res, next) => controller.inviteUser(req, res, next))
 
+router.get('/:id/remove', (req, res, next) => controller.showRemoveUserForm(req, res, next))
+router.post('/:id/remove', (req, res, next) => controller.removeMember(req, res, next))
+
 router.get('/:id/availability', (req, res, next) => controller.showAvailabilityForm(req, res, next))
 router.post('/:id/availability', (req, res, next) => controller.setAvailability(req, res, next))
 router.get('/:id/common-availability', (req, res, next) => controller.viewCommonAvailability(req, res, next))

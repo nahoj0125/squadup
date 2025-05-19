@@ -159,7 +159,7 @@ export class GroupController {
     }
   }
 
-  // ***** Invitation *****
+  // ***** Membership *****
 
   /**
    *
@@ -230,6 +230,58 @@ export class GroupController {
         text: error.message
       }
       res.redirect('/')
+    }
+  }
+
+  async showRemoveUserForm (req, res) {
+    try {
+      const groupId = req.params.id
+      const group = await this.#groupService.getGroupById(groupId)
+
+      if (group.creator.id !== req.session.user.id) {
+        req.session.flash = {
+          type: 'error',
+          text: 'Only the creator can remove users'
+        }
+        return res.redirect(`/groups/${groupId}`)
+      }
+
+      res.render('groups/remove', { group })
+    } catch (error) {
+      req.session.flash = {
+        type: 'error',
+        text: error.message
+      }
+    }
+  }
+
+  /**
+   * Remove a member from a group.
+   *
+   * @param {object} req - Express request object
+   * @param {object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   */
+  async removeMember (req, res, next) {
+    try {
+      const groupId = req.params.id
+      const username = req.body.username
+      const requesterId = req.session.user.id
+
+      await this.#groupService.removeMember(groupId, username, requesterId)
+
+      req.session.flash = {
+        type: 'success',
+        text: 'Member has been removed from the group'
+      }
+
+      res.redirect(`/groups/${groupId}`)
+    } catch (error) {
+      req.session.flash = {
+        type: 'error',
+        text: error.message
+      }
+      res.redirect(`/groups/${req.params.id}`)
     }
   }
 
