@@ -1,0 +1,17 @@
+<div class="container">
+  <h1>Delete Group: <%= group.name %></h1>
+  
+  <div class="flash-message warning">
+    <p>Warning: This action cannot be undone. All group data, messages, and availability information will be permanently deleted.</p>
+  </div>
+  
+  <form action="/groups/<%= group.id %>/delete" method="POST">
+    <div class="form-group">
+    </div>
+    <button type="submit" class="btn logout-btn">Delete Group</button>
+  </form>
+  
+  <div class="actions">
+    <a href="/groups/<%= group.id %>" class="btn secondary-btn">Cancel</a>
+  </div>
+</div>
