@@ -116,6 +116,14 @@ export class GroupService {
     }
   }
 
+  /**
+   * Delete a group.
+   *
+   * @param {string} groupId - ID of the group to delete
+   * @param {string} requesterId - ID of the user requesting the deletion
+   * @returns {Promise<boolean>} True if the group was successfully deleted
+   * @throws {Error} If the operation fails
+   */
   async deleteGroup (groupId, requesterId) {
     try {
       const group = await GroupModel.findById(groupId)
