@@ -85,6 +85,9 @@
           <% if (user.id === group.creator.id) { %>
             <a href="/groups/<%= group.id %>/invite" class="btn primary-btn">Invite User</a>
           <% } %>
+          <% if (user.id === group.creator.id) { %>
+            <a href="/groups/<%= group.id %>/remove" class="btn remove-btn">Remove Member</a>
+          <% } %>
         </div>
       </section>
       <div class="sidebar-section">
