@@ -61,6 +61,7 @@
             </div>
           <% } %>
         </div>
+        <a href="/groups/<%= group.id %>/delete" class="btn delete-btn">Delete Group</a>
       </section>
     </div>
 
@@ -81,13 +82,13 @@
           <% }) %>
         </div>
         <div class="group-actions">
-          <a href="/groups" class="btn">Back to Groups</a>
           <% if (user.id === group.creator.id) { %>
-            <a href="/groups/<%= group.id %>/invite" class="btn primary-btn">Invite User</a>
+            <a href="/groups/<%= group.id %>/invite" class="btn invite-btn">Invite User</a>
           <% } %>
           <% if (user.id === group.creator.id) { %>
             <a href="/groups/<%= group.id %>/remove" class="btn remove-btn">Remove Member</a>
           <% } %>
+          <a href="/groups" class="btn">Back to Groups</a>
         </div>
       </section>
       <div class="sidebar-section">

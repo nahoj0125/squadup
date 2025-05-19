@@ -23,6 +23,9 @@ router.post('/:id/invite', (req, res, next) => controller.inviteUser(req, res, n
 router.get('/:id/remove', (req, res, next) => controller.showRemoveUserForm(req, res, next))
 router.post('/:id/remove', (req, res, next) => controller.removeMember(req, res, next))
 
+router.get('/:id/delete', (req, res, next) => controller.showDeleteGroupForm(req, res, next))
+router.post('/:id/delete', (req, res, next) => controller.deleteGroup(req, res, next))
+
 router.get('/:id/availability', (req, res, next) => controller.showAvailabilityForm(req, res, next))
 router.post('/:id/availability', (req, res, next) => controller.setAvailability(req, res, next))
 router.get('/:id/common-availability', (req, res, next) => controller.viewCommonAvailability(req, res, next))

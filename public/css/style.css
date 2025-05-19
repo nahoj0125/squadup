@@ -263,6 +263,16 @@ header {
   color: white;
 }
 
+.btn.delete-btn {
+  background: var(--color-accent-gradient);
+  color: white;
+}
+
+.btn.invite-btn {
+  background-color: var(--color-secondary);
+  color: white;
+}
+
 /* 
  * USER ELEMENTS
  */

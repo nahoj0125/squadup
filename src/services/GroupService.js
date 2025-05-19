@@ -66,6 +66,15 @@ export class GroupService {
     }
   }
 
+  /**
+   * Remove a member from a group.
+   *
+   * @param {string} groupId - ID of the group
+   * @param {string} username - Username of the member to remove
+   * @param {string} requesterId - ID of the user requesting the removal
+   * @returns {Promise<object>} The updated group
+   * @throws {Error} If the operation fails
+   */
   async removeMember (groupId, username, requesterId) {
     try {
       const group = await GroupModel.findById(groupId)
@@ -103,6 +112,26 @@ export class GroupService {
       return await GroupModel.findById(groupId)
         .populate('creator', 'username firstname lastname')
         .populate('members', 'username firstname lastname')
+    } catch (error) {
+      throw new Error(error.message)
+    }
+  }
+
+  async deleteGroup (groupId, requesterId) {
+    try {
+      const group = await GroupModel.findById(groupId)
+
+      if (!group) {
+        throw new Error('Group not found')
+      }
+
+      if (group.creator._id.toString() !== requesterId) {
+        throw new Error('Only the creator of the group can delete the group')
+      }
+
+      await GroupModel.findByIdAndDelete(groupId)
+
+      return true
     } catch (error) {
       throw new Error(error.message)
     }

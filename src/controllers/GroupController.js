@@ -130,6 +130,50 @@ export class GroupController {
     }
   }
 
+  async showDeleteGroupForm (req, res, next) {
+    try {
+      const groupId = req.params.id
+      const group = await this.#groupService.getGroupById(groupId)
+
+      if (group.creator._id.toString() !== req.session.user.id) {
+        req.session.flash = {
+          type: 'error',
+          text: 'Only the creator of the group can delete the group'
+        }
+        return res.redirect(`/groups/${groupId}`)
+      }
+      res.render('groups/delete', { group })
+    } catch (error) {
+      req.session.flash = {
+        type: 'error',
+        text: error.message
+      }
+      res.redirect('/groups')
+    }
+  }
+
+  async deleteGroup (req, res, next) {
+    try {
+      const groupId = req.params.id
+      const requesterId = req.session.user.id
+
+      await this.#groupService.deleteGroup(groupId, requesterId)
+
+      req.session.flash = {
+        type: 'success',
+        text: 'Group has been deleted'
+      }
+
+      res.redirect('/groups')
+    } catch (error) {
+      req.session.flash = {
+        type: 'error',
+        text: error.message
+      }
+      res.redirect(`/groups/${req.params.id}`)
+    }
+  }
+
   // ***** Messages ******
 
   /**
