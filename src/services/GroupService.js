@@ -24,8 +24,7 @@ export class GroupService {
       name: groupData.name,
       description: groupData.description,
       creator: creatorId,
-      members: [creatorId],
-      isPublic: groupData.isPublic || false
+      members: [creatorId]
     })
     await group.save()
     return group

@@ -122,8 +122,7 @@ export class GroupController {
 
       req.session.formData = {
         name: req.body.name,
-        description: req.body.description,
-        isPublic: req.body.isPublic
+        description: req.body.description
       }
 
       res.redirect('/groups/new')
