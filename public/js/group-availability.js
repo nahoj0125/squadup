@@ -233,7 +233,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /**
-   * Updates the "Best Times" list to show the top 5 time slots with the most available users for the current week.
+   * Updates the "Best Times" list to show only the single best time slot
+   * with the most available users for the current week.
    *
    * @param {Array} timeSlotsData - Array of time slot objects
    */
@@ -249,10 +250,38 @@ document.addEventListener('DOMContentLoaded', function () {
       return
     }
 
+    // Get only the best time slot (sorted by user count, then by start time)
     const sortedSlots = getSortedTimeSlots(weekSlots)
-    const listEl = createBestTimesList(sortedSlots.slice(0, 5))
+    const bestTimeSlot = sortedSlots[0]
 
-    calendar.elements.bestTimesList.appendChild(listEl)
+    // Create and display the single best time
+    const bestTimeElement = createBestTimeElement(bestTimeSlot)
+    calendar.elements.bestTimesList.appendChild(bestTimeElement)
+
+    // Highlight this time in the calendar
+    highlightBestTimeInCalendar(bestTimeSlot)
+  }
+
+  /**
+   * Highlights the best time slot in the calendar with a special class.
+   *
+   * @param {object} slot - The best time slot
+   */
+  function highlightBestTimeInCalendar (slot) {
+    // Remove any existing best-time highlights
+    document.querySelectorAll('.best-time-highlight').forEach(cell => {
+      cell.classList.remove('best-time-highlight')
+    })
+
+    const startTime = new Date(slot.start)
+    // Convert to Monday = 0 format
+    const day = startTime.getDay() === 0 ? 6 : startTime.getDay() - 1
+    const hour = startTime.getHours()
+
+    const cell = document.querySelector(`.time-cell[data-day="${day}"][data-hour="${hour}"]`)
+    if (cell) {
+      cell.classList.add('best-time-highlight')
+    }
   }
 
   /**
@@ -271,67 +300,106 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /**
-   * Create the best-times-list element containing the top available time slots.
-   *
-   * @param {Array} slots - Top time slots to display
-   * @returns {HTMLElement} The created list element
-   */
-  function createBestTimesList (slots) {
-    const listEl = document.createElement('ul')
-    listEl.className = 'best-times-list'
-
-    slots.forEach(slot => {
-      const li = createBestTimesListItem(slot)
-      listEl.appendChild(li)
-    })
-
-    return listEl
-  }
-
-  /**
-   * Create a single best time list item for the best times list.
+   * Create a single best time element with enhanced styling.
    *
    * @param {object} slot - Time slot data
    * @param {string} slot.start - Start time in ISO format
    * @param {string} slot.end - End time in ISO format
    * @param {Array} slot.user - Array of user IDs available in this slot
-   * @returns {HTMLElement} List item element
+   * @returns {HTMLElement} Best time element
    */
-  function createBestTimesListItem (slot) {
-    const li = document.createElement('li')
+  function createBestTimeElement (slot) {
+    const container = document.createElement('div')
+    container.className = 'best-time-container'
+
     const startTime = new Date(slot.start)
     const endTime = new Date(slot.end)
 
     const weekday = startTime.toLocaleDateString('en-US', { weekday: 'long' })
-    const startTimeStr = startTime.toLocaleDateString('en-US', { hour: 'numeric', minute: '2-digit' })
-    const endTimeStr = endTime.toLocaleDateString('en-US', { hour: 'numeric', minute: '2-digit' })
+    const dateStr = startTime.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+    const startTimeStr = startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+    const endTimeStr = endTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 
-    applyClassToList(li, slot)
+    // Add class based on number of users
+    if (slot.user.length === 1) {
+      container.classList.add('one-person')
+    } else if (slot.user.length === 2) {
+      container.classList.add('two-people')
+    } else {
+      container.classList.add('three-plus-people')
+    }
 
-    li.innerHTML = `
-    <div class="best-time-weekday">${weekday}</div>
-    <div class="best-time-hours">${startTimeStr} - ${endTimeStr}</div>
-    <div class="best-time-count">${slot.user.length} ${slot.user.length === 1 ? 'person' : 'people'}</div>
+    // Add highlight class if current user is available in this slot
+    if (slot.user.includes(calendar.currentUserId)) {
+      container.classList.add('includes-you')
+    }
+
+    container.innerHTML = `
+      <div class="best-time-header">
+        <span class="best-time-weekday">${weekday}</span>, <span class="best-time-date">${dateStr}</span>
+      </div>
+      <div class="best-time-time">
+        <span class="best-time-hours">${startTimeStr} - ${endTimeStr}</span>
+      </div>
+      <div class="best-time-count">${slot.user.length} ${slot.user.length === 1 ? 'person' : 'people'} available</div>
     `
 
-    return li
-  }
+    // Add some custom styles for the best time display
+    const style = document.createElement('style')
+    style.textContent = `
+      .best-time-container {
+        background-color: #f5f9f7;
+        border-left: 4px solid #74b9a3;
+        padding: 15px;
+        border-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      }
+      
+      .best-time-container.three-plus-people {
+        border-left-color: #74b9a3;
+      }
+      
+      .best-time-container.two-people {
+        border-left-color: #97cdb9;
+      }
+      
+      .best-time-container.one-person {
+        border-left-color: #c5e1d8;
+      }
+      
+      .best-time-container.includes-you {
+        background-color: #ebf6f1;
+      }
+      
+      .best-time-header {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+      
+      .best-time-weekday, .best-time-date {
+        color: #2a7d63;
+      }
+      
+      .best-time-time {
+        margin-bottom: 5px;
+        font-size: 1.1em;
+      }
+      
+      .best-time-count {
+        color: #555;
+      }
+      
+      .best-time-highlight {
+        border: 3px solid #2a7d63 !important;
+        box-shadow: 0 0 5px rgba(42, 125, 99, 0.4);
+        z-index: 2;
+        position: relative;
+      }
+    `
+    document.head.appendChild(style)
 
-  /**
-   * Apply appropriate CSS classes to a best time list item based on availability data.
-   *
-   * @param {HTMLElement} li - List item element
-   * @param {object} slot - Time slot data
-   * @param {Array} slot.user - Array of user IDs available in this slot
-   */
-  function applyClassToList (li, slot) {
-    if (slot.user.length === 1) {
-      li.className = 'one-person'
-    } else if (slot.user.length === 2) {
-      li.className = 'two-people'
-    } else {
-      li.className = 'three-people'
-    }
+    return container
   }
 
   /**

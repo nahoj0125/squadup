@@ -50,8 +50,7 @@ describe('GroupModel', () => {
         name: 'Test group',
         description: 'This is a test group.',
         creator: user._id,
-        members: [user._id],
-        isPublic: true
+        members: [user._id]
       }
 
       const group = new GroupModel(groupData)
@@ -62,7 +61,6 @@ describe('GroupModel', () => {
       expect(savedGroup.description).toBe(groupData.description)
       expect(savedGroup.creator.toString()).toBe(user._id.toString())
       expect(savedGroup.members.toString()).toBe(user._id.toString())
-      expect(savedGroup.isPublic).toBe(groupData.isPublic)
     })
 
     test('should not create a group without a name', async () => {
@@ -70,8 +68,7 @@ describe('GroupModel', () => {
       const groupData = {
         description: 'This is a test group.',
         creator: user._id,
-        members: [user._id],
-        isPublic: true
+        members: [user._id]
       }
 
       const group = new GroupModel(groupData)

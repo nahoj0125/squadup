@@ -122,14 +122,21 @@ export class GroupController {
 
       req.session.formData = {
         name: req.body.name,
-        description: req.body.description,
-        isPublic: req.body.isPublic
+        description: req.body.description
       }
 
       res.redirect('/groups/new')
     }
   }
 
+  /**
+   * Display the delete group confirmation form.
+   *
+   * @param {object} req - Express request object
+   * @param {object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   * @returns {Promise<void>} A promise that resolves when the operation is complete.
+   */
   async showDeleteGroupForm (req, res, next) {
     try {
       const groupId = req.params.id
@@ -152,6 +159,13 @@ export class GroupController {
     }
   }
 
+  /**
+   * Delete a group.
+   *
+   * @param {object} req - Express request object
+   * @param {object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   */
   async deleteGroup (req, res, next) {
     try {
       const groupId = req.params.id
@@ -177,7 +191,12 @@ export class GroupController {
   // ***** Messages ******
 
   /**
+   * Create a new message in a group.
    *
+   * @param {object} req - Express request object
+   * @param {object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   * @returns {Promise<void>} A promise that resolves when the operation is complete.
    */
   async createMessage (req, res, next) {
     try {
@@ -206,7 +225,11 @@ export class GroupController {
   // ***** Membership *****
 
   /**
+   * Display the invite form for a group.
    *
+   * @param {object} req - Express request object
+   * @param {object} res - Express response object
+   * @returns {Promise<void>} A promise that resolves when the operation is complete.
    */
   async showInviteForm (req, res) {
     try {
@@ -231,7 +254,11 @@ export class GroupController {
   }
 
   /**
+   * Display the user's pending invitations.
    *
+   * @param {object} req - Express request object
+   * @param {object} res - Express response object
+   * @returns {Promise<void>} A promise that resolves when the operation is complete.
    */
   async showInvitations (req, res) {
     try {
@@ -249,7 +276,11 @@ export class GroupController {
   }
 
   /**
+   * Invite a user to a group.
    *
+   * @param {object} req - Express request object
+   * @param {object} res - Express response object
+   * @returns {Promise<void>} A promise that resolves when the operation is complete.
    */
   async inviteUser (req, res) {
     try {
@@ -277,6 +308,13 @@ export class GroupController {
     }
   }
 
+  /**
+   * Display the remove user form for a group.
+   *
+   * @param {object} req - Express request object
+   * @param {object} res - Express response object
+   * @returns {Promise<void>} A promise that resolves when the operation is complete.
+   */
   async showRemoveUserForm (req, res) {
     try {
       const groupId = req.params.id
@@ -330,7 +368,11 @@ export class GroupController {
   }
 
   /**
+   * Process an invitation by accepting or declining it.
    *
+   * @param {object} req - Express request object
+   * @param {object} res - Express response object
+   * @returns {Promise<void>} A promise that resolves when the operation is complete.
    */
   async processInvitation (req, res) {
     try {
@@ -358,7 +400,12 @@ export class GroupController {
   // ***** Availability *****
 
   /**
+   * Display the availability form for a group.
    *
+   * @param {object} req - Express request object
+   * @param {object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   * @returns {Promise<void>} A promise that resolves when the operation is complete.
    */
   async showAvailabilityForm (req, res, next) {
     try {
@@ -383,7 +430,12 @@ export class GroupController {
   }
 
   /**
+   * Set the availability for a user in a group.
    *
+   * @param {object} req - Express request object
+   * @param {object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   * @returns {Promise<void>} A promise that resolves when the operation is complete.
    */
   async setAvailability (req, res, next) {
     try {
@@ -409,7 +461,12 @@ export class GroupController {
   }
 
   /**
+   * Display the common availability for a group.
    *
+   * @param {object} req - Express request object
+   * @param {object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   * @returns {Promise<void>} A promise that resolves when the operation is complete.
    */
   async viewCommonAvailability (req, res, next) {
     try {
