@@ -75,8 +75,11 @@ export class LoginController {
         res.redirect('./')
       })
     } catch (error) {
-      error.status = 401
-      next(error)
+      req.session.flash = {
+        type: 'error',
+        text: 'Invalid username or password. Please try again.'
+      }
+      res.redirect('./login')
     }
   }
 
