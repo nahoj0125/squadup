@@ -6,10 +6,13 @@
 
 import express from 'express'
 import { GroupController } from '../controllers/GroupController.js'
+import { isAuthenticated } from '../middleware/isAuthenticated.js'
 
 export const router = express.Router()
 
 const controller = new GroupController()
+
+router.use(isAuthenticated)
 
 router.get('/', (req, res, next) => controller.index(req, res, next))
 router.get('/new', (req, res, next) => controller.new(req, res, next))

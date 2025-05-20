@@ -379,8 +379,6 @@ export class GroupController {
       const invitationId = req.body.invitationId || req.params.id
       const accept = req.path.endsWith('/accept')
 
-      console.log(`Processing invitation ID: ${invitationId}, Accept: ${accept}`)
-
       await this.#invitationService.processInvitation(invitationId, req.session.user.id, accept)
 
       req.session.flash = {
