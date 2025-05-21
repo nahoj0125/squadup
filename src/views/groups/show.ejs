@@ -29,6 +29,7 @@
         
         <!-- Message form -->
         <form class="message-form" action="/groups/<%= group.id %>/messages" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <div class="form-group">
             <textarea 
               name="content" 
@@ -61,7 +62,10 @@
             </div>
           <% } %>
         </div>
-        <a href="/groups/<%= group.id %>/delete" class="btn delete-btn">Delete Group</a>
+        <form action="/groups/<%= group.id %>/delete" method="POST" style="display: inline;">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn delete-btn">Delete Group</button>
+        </form>
       </section>
     </div>
 

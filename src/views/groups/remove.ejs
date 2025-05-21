@@ -2,6 +2,7 @@
   <h1>Remove member from: <%= group.name %></h1>
   
   <form action="/groups/<%= group.id %>/remove" method="POST">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <div class="form-group">
       <label for="username">Remove user:</label>
       <input type="text" id="username" name="username" required>

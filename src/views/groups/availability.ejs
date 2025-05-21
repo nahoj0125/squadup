@@ -12,6 +12,7 @@
     </div>
 
     <form action="/groups/<%= group.id %>/availability" method="POST" id="availability-form">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <div class="calendar-container">
         <div class="calendar-header">
           <button type="button" id="prev-week" class="btn calendar-nav-btn">&laquo; Previous Week</button>

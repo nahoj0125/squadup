@@ -4,6 +4,7 @@
   </header>
 
   <form action="/groups" method="POST" class="group-form">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <div class="form-group">
       <label for="name">Group Name</label>
       <input type="text" id="name" name="name" 

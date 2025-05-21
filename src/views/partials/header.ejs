@@ -19,6 +19,7 @@
         <a href="/invitations" class="btn invitations-btn">Invitations</a>
         <a href="/groups" class="btn groups-btn">Groups</a>
         <form action="/login/logout" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <button type="submit" class="btn logout-btn">Logout</button>
         </form>
         <% } %>
