@@ -13,9 +13,11 @@
           </div>
           <div class="invitation-actions">
             <form action="/invitations/<%= invitation.id %>/accept" method="POST" style="display:inline;">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <button type="submit" class="btn accept-btn">Accept</button>
             </form>
             <form action="/invitations/<%= invitation.id %>/decline" method="POST" style="display:inline;">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <button type="submit" class="btn decline-btn">Decline</button>
             </form>
           </div>

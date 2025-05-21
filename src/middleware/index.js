@@ -6,3 +6,5 @@
 export { errorHandler } from './errorHandler.js'
 export { flashMessages } from './flashmessages.js'
 export { isAuthenticated } from './isAuthenticated.js'
+
+export { configureCsrfProtection } from './csrfProtection.js'

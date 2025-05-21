@@ -6,6 +6,7 @@
   </div>
   
   <form action="/groups/<%= group.id %>/delete" method="POST">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <div class="form-group">
     </div>
     <button type="submit" class="btn logout-btn">Delete Group</button>

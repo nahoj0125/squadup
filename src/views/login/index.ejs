@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
+
+  <meta name="csrf-token" content="<%= csrfToken %>">
 </head>
 <body>
   <div class="page-container">
@@ -24,6 +26,7 @@
           <% } %>
           
           <form action="/login" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <div class="input-group">
               <label for="username">Username</label>
               <input type="text" id="username" name="username" placeholder="Enter your username">

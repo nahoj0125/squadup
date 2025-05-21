@@ -13,9 +13,10 @@ import { fileURLToPath } from 'node:url'
 import { connectToDatabase } from './config/mongoose.js'
 import { sessionOptions } from './config/sessionOptions.js'
 import { router } from './routes/router.js'
-import { errorHandler, flashMessages } from './middleware/index.js'
+import { errorHandler, flashMessages, configureCsrfProtection } from './middleware/index.js'
 import helmetConfig from './config/helmetConfig.js'
 import 'dotenv/config'
+import cookieParser from 'cookie-parser'
 
 try {
   // Connect to MongoDB.
@@ -56,6 +57,25 @@ try {
     app.set('trust proxy', 1) // trust first proxy
   }
   app.use(session(sessionOptions))
+
+  // Parse cookies
+  app.use(cookieParser())
+
+  // Parse requests of the content type application/x-www-form-urlencoded.
+  // Populates the request object with a body object (req.body).
+  app.use(express.urlencoded({ extended: false }))
+
+  // Make baseURL available to all templates
+  app.use((req, res, next) => {
+    res.locals.baseURL = baseURL
+    res.locals.user = req.session.user || null
+    next()
+  })
+
+  // Configure and apply CSRF protection
+  const { csrfProtect, csrfToken } = configureCsrfProtection()
+  app.use(csrfProtect)
+  app.use(csrfToken)
 
   // Middleware to be executed before the routes.
   app.use(flashMessages(baseURL))
