@@ -6,8 +6,6 @@
 
 import { GroupService } from '../services/GroupService.js'
 import { MessageService } from '../services/MessageService.js'
-import { InvitationService } from '../services/InvitationService.js'
-import { AvailabilityService } from '../services/AvailablilityService.js'
 
 /**
  *
@@ -15,8 +13,6 @@ import { AvailabilityService } from '../services/AvailablilityService.js'
 export class GroupController {
   #groupService
   #messageService
-  #invitationService
-  #availabilityService
 
   /**
    * Initialize the group controller with necessary services.
@@ -24,8 +20,6 @@ export class GroupController {
   constructor () {
     this.#groupService = new GroupService()
     this.#messageService = new MessageService()
-    this.#invitationService = new InvitationService()
-    this.#availabilityService = new AvailabilityService()
   }
 
   /**
@@ -188,125 +182,7 @@ export class GroupController {
     }
   }
 
-  // ***** Messages ******
-
-  /**
-   * Create a new message in a group.
-   *
-   * @param {object} req - Express request object
-   * @param {object} res - Express response object
-   * @param {Function} next - Express next middleware function
-   * @returns {Promise<void>} A promise that resolves when the operation is complete.
-   */
-  async createMessage (req, res, next) {
-    try {
-      const groupId = req.params.id
-      const userId = req.session.user.id
-      const { content } = req.body
-
-      if (!content || content.trim() === '') {
-        req.session.flash = {
-          type: 'error',
-          text: 'Message cannot be empty'
-        }
-        return res.render(`/groups/${groupId}`)
-      }
-      await this.#messageService.createMessage(content, userId, groupId)
-
-      return res.redirect(`/groups/${groupId}`)
-    } catch (error) {
-      req.session.flash = {
-        type: 'error',
-        text: error.message
-      }
-    }
-  }
-
   // ***** Membership *****
-
-  /**
-   * Display the invite form for a group.
-   *
-   * @param {object} req - Express request object
-   * @param {object} res - Express response object
-   * @returns {Promise<void>} A promise that resolves when the operation is complete.
-   */
-  async showInviteForm (req, res) {
-    try {
-      const groupId = req.params.id
-      const group = await this.#groupService.getGroupById(groupId)
-
-      if (group.creator.id !== req.session.user.id) {
-        req.session.flash = {
-          type: 'error',
-          text: 'Only the creator can invite users'
-        }
-        return res.redirect(`/groups/${groupId}`)
-      }
-
-      res.render('groups/invite', { group })
-    } catch (error) {
-      req.session.flash = {
-        type: 'error',
-        text: error.message
-      }
-    }
-  }
-
-  /**
-   * Display the user's pending invitations.
-   *
-   * @param {object} req - Express request object
-   * @param {object} res - Express response object
-   * @returns {Promise<void>} A promise that resolves when the operation is complete.
-   */
-  async showInvitations (req, res) {
-    try {
-      const invitations = await this.#invitationService.getPendingInvitations(req.session.user.id)
-      const group = invitations.length > 0 ? await this.#groupService.getGroupById(invitations[0].group) : null
-
-      res.render('invitations', { invitations, group })
-    } catch (error) {
-      req.session.flash = {
-        type: 'error',
-        text: error.message
-      }
-      res.redirect('/')
-    }
-  }
-
-  /**
-   * Invite a user to a group.
-   *
-   * @param {object} req - Express request object
-   * @param {object} res - Express response object
-   * @returns {Promise<void>} A promise that resolves when the operation is complete.
-   */
-  async inviteUser (req, res) {
-    try {
-      const groupId = req.params.id
-      const { username } = req.body
-
-      await this.#invitationService.inviteUser(
-        groupId,
-        req.session.user.id,
-        username
-      )
-
-      req.session.flash = {
-        type: 'success',
-        text: `Invitation sent to ${username}`
-      }
-
-      res.redirect(`/groups/${groupId}/invite`)
-    } catch (error) {
-      req.session.flash = {
-        type: 'error',
-        text: error.message
-      }
-      res.redirect('/')
-    }
-  }
 
   /**
    * Display the remove user form for a group.
@@ -364,126 +240,6 @@ export class GroupController {
         text: error.message
       }
       res.redirect(`/groups/${req.params.id}`)
-    }
-  }
-
-  /**
-   * Process an invitation by accepting or declining it.
-   *
-   * @param {object} req - Express request object
-   * @param {object} res - Express response object
-   * @returns {Promise<void>} A promise that resolves when the operation is complete.
-   */
-  async processInvitation (req, res) {
-    try {
-      const invitationId = req.body.invitationId || req.params.id
-      const accept = req.path.endsWith('/accept')
-
-      await this.#invitationService.processInvitation(invitationId, req.session.user.id, accept)
-
-      req.session.flash = {
-        type: 'success',
-        text: accept ? 'Invitation accepted' : 'Invitation declined'
-      }
-
-      res.redirect(accept ? '/groups' : '/invitations')
-    } catch (error) {
-      req.session.flash = {
-        type: 'error',
-        text: 'Something went wrong while processing the invitation.'
-      }
-    }
-  }
-
-  // ***** Availability *****
-
-  /**
-   * Display the availability form for a group.
-   *
-   * @param {object} req - Express request object
-   * @param {object} res - Express response object
-   * @param {Function} next - Express next middleware function
-   * @returns {Promise<void>} A promise that resolves when the operation is complete.
-   */
-  async showAvailabilityForm (req, res, next) {
-    try {
-      const groupId = req.params.id
-      const userId = req.session.user.id
-
-      const group = await this.#groupService.getGroupById(groupId)
-      const userAvailability = await this.#availabilityService.getUserAvailability(userId, groupId)
-
-      res.render('groups/availability', {
-        group,
-        availability: userAvailability,
-        title: `Set Availability for ${group.name}`
-      })
-    } catch (error) {
-      req.session.flash = {
-        type: 'error',
-        text: error.message
-      }
-      res.redirect('/groups')
-    }
-  }
-
-  /**
-   * Set the availability for a user in a group.
-   *
-   * @param {object} req - Express request object
-   * @param {object} res - Express response object
-   * @param {Function} next - Express next middleware function
-   * @returns {Promise<void>} A promise that resolves when the operation is complete.
-   */
-  async setAvailability (req, res, next) {
-    try {
-      const groupId = req.params.id
-      const userId = req.body.userId
-      const timeSlots = JSON.parse(req.body.timeSlots)
-
-      await this.#availabilityService.setAvailability(userId, groupId, timeSlots)
-
-      req.session.flash = {
-        type: 'success',
-        text: 'Your availability has been updated'
-      }
-
-      res.redirect(`/groups/${groupId}`)
-    } catch (error) {
-      req.session.flash = {
-        type: 'error',
-        text: error.message
-      }
-      res.redirect('/groups')
-    }
-  }
-
-  /**
-   * Display the common availability for a group.
-   *
-   * @param {object} req - Express request object
-   * @param {object} res - Express response object
-   * @param {Function} next - Express next middleware function
-   * @returns {Promise<void>} A promise that resolves when the operation is complete.
-   */
-  async viewCommonAvailability (req, res, next) {
-    try {
-      const groupId = req.params.id
-      const group = await this.#groupService.getGroupById(groupId)
-      const commonTimes = await this.#availabilityService.getCommonAvailability(groupId)
-
-      res.render('groups/common-availability', {
-        group,
-        commonTimes,
-        currentUserId: req.session.user.id,
-        title: `Common Availability for ${group.name}`
-      })
-    } catch (error) {
-      req.session.flash = {
-        type: 'error',
-        text: error.message
-      }
-      res.redirect('/groups/')
     }
   }
 }
