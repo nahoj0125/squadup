@@ -13,9 +13,9 @@
       <a href="/login" class="btn login-btn">Login</a>
       <a href="/register" class="btn register-btn">Register</a>
       <% } else { %>
-        <span id="username-container">
-        Hello, <%= user.username %>!
-      </span>
+        <a href="/account/delete" id="username-container">
+          Hello, <%= user.username %>!
+        </a>
         <a href="/invitations" class="btn invitations-btn">Invitations</a>
         <a href="/groups" class="btn groups-btn">Groups</a>
         <form action="/login/logout" method="POST">

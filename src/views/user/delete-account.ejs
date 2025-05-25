@@ -1,0 +1,72 @@
+<div class="container">
+  <div class="delete-account-container">
+    <h1>Delete Your Account</h1>
+    
+    <div class="warning-section">
+      <div class="flash-message warning">
+        <h3>⚠️ Warning: This action cannot be undone!</h3>
+        <p>Deleting your account will permanently remove:</p>
+        <ul>
+          <li>Your user profile and account information</li>
+          <li>All groups you created (and all their messages and data)</li>
+          <li>Your membership in all groups</li>
+          <li>All your messages in group chats</li>
+          <li>Your availability schedules</li>
+          <li>All pending invitations (sent and received)</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="confirmation-section">
+      <form action="/account/delete" method="POST" id="delete-account-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        
+        <div class="form-group">
+          <label for="confirmation">To confirm, type your username "<%= user.username %>":</label>
+          <input type="text" id="confirmation" name="confirmation" required 
+                 placeholder="Type your username here">
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Enter your password to confirm:</label>
+          <input type="password" id="password" name="password" required 
+                 placeholder="Enter your password">
+        </div>
+        
+        <div class="form-actions">
+          <button type="submit" class="btn logout-btn" id="delete-btn" disabled>
+            Delete My Account Permanently
+          </button>
+          <a href="/" class="btn secondary-btn">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Enable delete button only when username confirmation matches
+  document.addEventListener('DOMContentLoaded', function() {
+    const confirmationInput = document.getElementById('confirmation');
+    const deleteBtn = document.getElementById('delete-btn');
+    const expectedUsername = '<%= user.username %>';
+    
+    confirmationInput.addEventListener('input', function() {
+      if (this.value === expectedUsername) {
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = 'Delete My Account Permanently';
+      } else {
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = 'Type your username to enable deletion';
+      }
+    });
+    
+    // Add confirmation dialog
+    document.getElementById('delete-account-form').addEventListener('submit', function(e) {
+      const confirmed = confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.');
+      if (!confirmed) {
+        e.preventDefault();
+      }
+    });
+  });
+</script>

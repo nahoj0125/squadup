@@ -1205,6 +1205,52 @@ footer {
   }
 }
 
+/* Add to your style.css */
+.delete-account-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--space-lg);
+}
+
+.warning-section {
+  margin: var(--space-lg) 0;
+}
+
+.flash-message.warning {
+  background-color: #fff3cd;
+  border-left: 4px solid #ffc107;
+  color: #856404;
+}
+
+.flash-message.warning h3 {
+  margin-bottom: var(--space-sm);
+}
+
+.flash-message.warning ul {
+  margin: var(--space-sm) 0;
+  padding-left: var(--space-md);
+}
+
+.confirmation-section {
+  background: var(--color-bg-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin: var(--space-lg) 0;
+}
+
+.danger-zone {
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  margin: var(--space-lg) 0;
+  background: #fdf2f2;
+}
+
+.danger-zone h3 {
+  color: var(--color-accent);
+  margin-bottom: var(--space-sm);
+}
+
 @media (max-width: 480px) {
   .footer-links {
     flex-direction: column;

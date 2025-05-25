@@ -13,6 +13,7 @@ import { router as groupRouter } from './groupRouter.js'
 import { router as invitationRouter } from './invitationRouter.js'
 import { router as availabilityRouter } from './availabilityRouter.js'
 import { router as messageRouter } from './messageRouter.js'
+import { router as userRouter } from './userRouter.js'
 
 export const router = express.Router()
 
@@ -24,6 +25,7 @@ router.use('/groups', invitationRouter)
 router.use('/invitations', invitationRouter)
 router.use('/groups', availabilityRouter)
 router.use('/groups', messageRouter)
+router.use('/', userRouter)
 
 // Catch 404 (ALWAYS keep this as the last route).
 router.use('*', (req, res, next) => {

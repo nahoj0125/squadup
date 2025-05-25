@@ -1,0 +1,80 @@
+<!-- src/views/user/account-deleted.ejs -->
+<div class="container">
+  <div class="account-deleted-container">
+    <h1>Account Successfully Deleted</h1>
+    
+    <div class="success-message">
+      <h3>✅ Your account has been permanently deleted</h3>
+      <p>We're sorry to see you go! Your account and all associated data have been successfully removed from SquadUp.</p>
+      
+      <div class="next-steps">
+        <h4>What happens next:</h4>
+        <ul>
+          <li>You have been automatically logged out</li>
+          <li>Your groups, messages, and availability data have been removed</li>
+          <li>Other group members will no longer see you in their groups</li>
+          <li>Any groups you created have been deleted</li>
+        </ul>
+      </div>
+      
+      <div class="actions">
+        <a href="/" class="btn primary-btn">Return to Home Page</a>
+        <a href="/register" class="btn secondary-btn">Create New Account</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.account-deleted-container {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+.success-message {
+  background: var(--color-bg-light);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin: var(--space-lg) 0;
+}
+
+.next-steps {
+  text-align: left;
+  margin: var(--space-md) 0;
+}
+
+.next-steps ul {
+  list-style: none;
+  padding: 0;
+}
+
+.next-steps li {
+  padding: var(--space-xs) 0;
+  position: relative;
+  padding-left: 20px;
+}
+
+.next-steps li::before {
+  content: "•";
+  color: var(--color-primary);
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+}
+
+.actions {
+  margin-top: var(--space-lg);
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+}
+
+@media (max-width: 576px) {
+  .actions {
+    flex-direction: column;
+  }
+}
+</style>
