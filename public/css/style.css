@@ -1251,6 +1251,58 @@ footer {
   margin-bottom: var(--space-sm);
 }
 
+.account-deleted-container {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+.success-message {
+  background: var(--color-bg-light);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin: var(--space-lg) 0;
+}
+
+.next-steps {
+  text-align: left;
+  margin: var(--space-md) 0;
+}
+
+.next-steps ul {
+  list-style: none;
+  padding: 0;
+}
+
+.next-steps li {
+  padding: var(--space-xs) 0;
+  position: relative;
+  padding-left: 20px;
+}
+
+.next-steps li::before {
+  content: "•";
+  color: var(--color-primary);
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+}
+
+.actions {
+  margin-top: var(--space-lg);
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+}
+
+@media (max-width: 480px) {
+  .actions {
+    flex-direction: column;
+  }
+}
+
 @media (max-width: 480px) {
   .footer-links {
     flex-direction: column;

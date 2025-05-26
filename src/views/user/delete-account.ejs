@@ -44,29 +44,10 @@
   </div>
 </div>
 
-<script>
-  // Enable delete button only when username confirmation matches
-  document.addEventListener('DOMContentLoaded', function() {
-    const confirmationInput = document.getElementById('confirmation');
-    const deleteBtn = document.getElementById('delete-btn');
-    const expectedUsername = '<%= user.username %>';
-    
-    confirmationInput.addEventListener('input', function() {
-      if (this.value === expectedUsername) {
-        deleteBtn.disabled = false;
-        deleteBtn.textContent = 'Delete My Account Permanently';
-      } else {
-        deleteBtn.disabled = true;
-        deleteBtn.textContent = 'Type your username to enable deletion';
-      }
-    });
-    
-    // Add confirmation dialog
-    document.getElementById('delete-account-form').addEventListener('submit', function(e) {
-      const confirmed = confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.');
-      if (!confirmed) {
-        e.preventDefault();
-      }
-    });
-  });
+<script type="application/json" id="delete-account-data">
+{
+  "username": "<%= user.username %>"
+}
 </script>
+
+<script src="/js/delete-account.js"></script>

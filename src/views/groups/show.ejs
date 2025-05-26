@@ -62,9 +62,15 @@
             </div>
           <% } %>
         </div>
-        <form action="/groups/<%= group.id %>/delete" method="POST" style="display: inline;">
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-          <button type="submit" class="btn delete-btn">Delete Group</button>
+
+        <!-- Delete Group Button with Confirmation (only show to creator) -->
+        <% if (user.id === group.creator.id) { %>
+          <div class="danger-zone">
+            <h3>Danger Zone</h3>
+            <p>Once you delete this group, there is no going back. All messages, availability data, and member information will be permanently lost.</p>
+            <a href="/groups/<%= group.id %>/delete" class="btn logout-btn">Delete Group</a>
+          </div>
+        <% } %>
         </form>
       </section>
     </div>
