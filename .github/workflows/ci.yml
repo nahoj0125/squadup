@@ -1,0 +1,146 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Build project
+      run: |
+        echo "Building project..."
+        sleep 2
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm install
+    
+    - name: Run linting
+      run: npm run lint
+
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm install
+    
+    - name: Run tests
+      run: |
+        echo "Running tests..."
+        npm test
+
+---
+
+# .github/workflows/deploy.yml
+name: Deploy to Production
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    branches: [main]
+    types: [completed]
+
+jobs:
+  manual-approval:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment: 
+      name: production-approval
+    
+    steps:
+    - name: Wait for manual approval
+      run: echo "Waiting for manual approval before deployment..."
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: manual-approval
+    environment: 
+      name: production
+      url: http://${{ vars.PRODUCTION_HOST }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup SSH
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install openssh-client -y
+        eval $(ssh-agent -s)
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' | ssh-add - > /dev/null
+        mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
+        ssh-keyscan -H ${{ vars.PRODUCTION_HOST }} >> ~/.ssh/known_hosts
+        chmod 644 ~/.ssh/known_hosts
+    
+    - name: Deploy to production
+      env:
+        REMOTE_HOST: ${{ vars.PRODUCTION_HOST }}
+        NODE_ENV: "production"
+        PORT: 3000
+        MONGO_URI: "mongodb://mongo:27017/squadup"
+        SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+        DOCKER_HOST_PORT: ${{ vars.DOCKER_PORT }}
+      run: |
+        echo "Deploying to production..."
+        
+        # Set up Docker context for remote deployment
+        docker context create remote --docker host=ssh://ubuntu@${{ vars.PRODUCTION_HOST }}
+        docker context use remote
+        
+        # List running containers for debugging
+        docker ps || true
+        
+        # Stop ALL running containers to ensure clean slate
+        docker stop $(docker ps -q) || true
+        
+        # Remove ALL stopped containers
+        docker rm $(docker ps -a -q) || true
+        
+        # Ensure the mongo container is really gone
+        docker rm -f 8559f8b52ec2 || true
+        docker rm -f squadup-mongo || true
+        
+        # Clean up system
+        docker system prune -f
+        
+        # Copy docker-compose file to remote server
+        scp docker-compose.production.yaml ubuntu@${{ vars.PRODUCTION_HOST }}:~/
+        
+        # Start with fresh containers
+        docker compose -f docker-compose.production.yaml up -d --build
+        
+        # Verify deployment
+        echo "Waiting for containers to start..."
+        sleep 10
+        docker ps

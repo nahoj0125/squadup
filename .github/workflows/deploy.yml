@@ -1,0 +1,81 @@
+name: Deploy to Production (SSH)
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    branches: [main]
+    types: [completed]
+
+jobs:
+  manual-approval:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment: 
+      name: production-approval
+    
+    steps:
+    - name: Wait for manual approval
+      run: echo "Waiting for manual approval before deployment..."
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: manual-approval
+    environment: 
+      name: production
+      url: http://${{ vars.PRODUCTION_HOST }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup SSH key
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    
+    - name: Add server to known hosts
+      run: |
+        ssh-keyscan -H ${{ vars.PRODUCTION_HOST }} >> ~/.ssh/known_hosts
+    
+    - name: Copy files to server
+      run: |
+        scp -r . ubuntu@${{ vars.PRODUCTION_HOST }}:~/squadup/
+    
+    - name: Deploy on remote server
+      run: |
+        ssh ubuntu@${{ vars.PRODUCTION_HOST }} << 'EOF'
+          cd ~/squadup
+          
+          # Set environment variables
+          export NODE_ENV="production"
+          export PORT=3000
+          export MONGO_URI="mongodb://mongo:27017/squadup"
+          export SESSION_SECRET="${{ secrets.SESSION_SECRET }}"
+          export DOCKER_HOST_PORT="${{ vars.DOCKER_PORT }}"
+          
+          echo "Deploying to production..."
+          
+          # List running containers for debugging
+          docker ps || true
+          
+          # Stop ALL running containers to ensure clean slate
+          docker stop $(docker ps -q) || true
+          
+          # Remove ALL stopped containers
+          docker rm $(docker ps -a -q) || true
+          
+          # Ensure the mongo container is really gone
+          docker rm -f 8559f8b52ec2 || true
+          docker rm -f squadup-mongo || true
+          
+          # Clean up system
+          docker system prune -f
+          
+          # Start with fresh containers
+          docker compose -f docker-compose.production.yaml up -d --build
+          
+          # Verify deployment
+          echo "Waiting for containers to start..."
+          sleep 10
+          docker ps
+        EOF
