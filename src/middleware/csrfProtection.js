@@ -65,7 +65,7 @@ export function configureCsrfProtection () {
 
         return res.status(403).json({
           error: 'Forbidden',
-          message: 'Invalid CSRF token'
+          message: 'Invalid CSRF token.'
         })
       }
 
