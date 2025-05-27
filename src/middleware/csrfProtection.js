@@ -63,9 +63,9 @@ export function configureCsrfProtection () {
         console.log('- Request token:', token)
         console.log('- Request body:', req.body)
 
-        return res.status(403).render('error', {
-          message: 'Invalid CSRF token',
-          error: { status: 403, stack: '' }
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'Invalid CSRF token'
         })
       }
 
