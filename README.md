@@ -43,16 +43,22 @@ Requirements
 - npm
 
 1. Clone the repository:
-git clone !!!
+```bash
+git clone https://github.com/nahoj0125/squadup.git
 cd squadup
+```
 
 2. Install dependencies:
+```bash
 npm install
+```
 
 3. Set up environment variables
 
 4. Start the application:
+```bash
 npm start
+```
 
 - The app will be available at http://localhost:3000 by default.
 
@@ -75,7 +81,10 @@ Rate Limiting: (Recommended) Add rate limiting to authentication and sensitive e
 Security Headers: Helmet is used to set HTTP security headers.
 
 ## Support
-!!!
+* **Bug Reports & Issues**: Open an issue on [GitHub](https://github.com/nahoj0125/squadup/issues)
+* **Documentation**: Check the README and code comments for implementation details
+
+When reporting issues, please include your system details, steps to reproduce, and any error messages.
 
 ## Roadmap
 Add real-time messaging (WebSockets)
@@ -89,8 +98,10 @@ Fork the repository.
 3. Open a merge request with a description of your changes.
 
 Run tests and lint before submitting:
+```bash
 npm test
 npm run lint
+```
 
 ## Authors and acknowledgment
 Johan Persson (nahoj0125)
