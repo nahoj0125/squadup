@@ -69,6 +69,20 @@ npm start
 - Send and receive messages within your group.
 - Invite others to your group and manage membership.
 
+# Testing
+
+SquadUp includes comprehensive testing to ensure reliability and security.
+
+### Automated Tests
+```bash
+# Run all tests
+npm test
+```
+
+### Manual Tests
+- [Manual Test Cases](docs/manual-tests.md)
+- [Test Result](docs/test-result.md) 
+
 ## Security
 SquadUp follows best practices for web application security:
 
