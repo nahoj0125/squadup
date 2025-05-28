@@ -37,7 +37,8 @@ Availability Page
 
 ## Installation
 Requirements
-
+- Docker and Docker Compose
+- Git
 - Node.js (v18+ recommended)
 - MongoDB (local or cloud)
 - npm
@@ -54,10 +55,11 @@ npm install
 ```
 
 3. Set up environment variables
+Copy .env.example to .env and fill in your MongoDB connection string and session secret.
 
 4. Start the application:
 ```bash
-npm start
+docker-compose up --build
 ```
 
 - The app will be available at http://localhost:3000 by default.
