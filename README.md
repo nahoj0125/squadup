@@ -1,94 +1,116 @@
 # squadup
 
+## squadup
+SquadUp is a collaborative web application for managing groups, scheduling, and messaging. It allows users to create groups, invite members, set and view availability, and communicate securely—all with robust security features.
 
-
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://gitlab.lnu.se/1dv613/student/jp223yp/projects/squadup.git
-git branch -M main
-git push -uf origin main
-```
-
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://gitlab.lnu.se/1dv613/student/jp223yp/projects/squadup/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
 
 ## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+SquadUp helps teams and groups coordinate by providing:
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+- Group creation and management
+- Secure messaging within groups
+- Availability scheduling and common time finding
+- Invitation system for group membership
+- Built with Node.js, Express, MongoDB, and EJS, SquadUp emphasizes security and privacy.
+
+## Features
+- User registration and authentication (with hashed passwords)
+- CSRF protection on all sensitive routes
+
+- Group creation, deletion, and membership management
+- Messaging within groups
+- Availability calendar and best-time suggestions
+- Invitation system for joining groups
+- Flash messages for user feedback
+- Security headers via Helmet
+- Session management with secure cookies
 
 ## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+Home Page
+![squadup_homepage](https://github.com/user-attachments/assets/59544102-f0f3-4d9c-a25f-210a6026ff33)
+
+Group Page
+![squadup_group](https://github.com/user-attachments/assets/da18fd0a-10da-41c1-a578-cd9464213966)
+
+Availability Page
+![squadup_availability](https://github.com/user-attachments/assets/1f3f2a10-742d-4bca-8cd3-6e62c5b47990)
 
 ## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+Requirements
+
+- Node.js (v18+ recommended)
+- MongoDB (local or cloud)
+- npm
+
+1. Clone the repository:
+```bash
+git clone https://github.com/nahoj0125/squadup.git
+cd squadup
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Set up environment variables
+
+4. Start the application:
+```bash
+npm start
+```
+
+- The app will be available at http://localhost:3000 by default.
 
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+- Register a new user account.
+- Create or join a group.
+- Set your availability in the group calendar.
+- Send and receive messages within your group.
+- Invite others to your group and manage membership.
+
+## Security
+SquadUp follows best practices for web application security:
+
+CSRF Protection: All forms and sensitive routes are protected by CSRF tokens.
+Session Security: Sessions use secure, HTTP-only cookies. Sessions are regenerated on login/logout.
+Input Validation: All user input is validated and sanitized on both client and server.
+Password Hashing: Passwords are hashed using bcrypt before storage.
+Authorization: Only authorized users can perform sensitive actions (e.g., deleting groups, removing members).
+Rate Limiting: (Recommended) Add rate limiting to authentication and sensitive endpoints.
+Security Headers: Helmet is used to set HTTP security headers.
 
 ## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+* **Bug Reports & Issues**: Open an issue on [GitHub](https://github.com/nahoj0125/squadup/issues)
+* **Documentation**: Check the README and code comments for implementation details
+
+When reporting issues, please include your system details, steps to reproduce, and any error messages.
 
 ## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+Add real-time messaging (WebSockets)
 
 ## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+Contributions are welcome! Please:
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+Fork the repository.
+1. Create a new branch for your feature or bugfix.
+2. Write clear, secure, and tested code.
+3. Open a merge request with a description of your changes.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+Run tests and lint before submitting:
+```bash
+npm test
+npm run lint
+```
 
 ## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+Johan Persson (nahoj0125)
 
 ## License
-For open source projects, say how it is licensed.
+This project is licensed under the GNU General Public License v3.0.
 
 ## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Active – SquadUp is under active development. Contributions and feedback are welcome!
+
 # Test deployment
+To test locally, follow the Installation steps and use the default environment variables.
