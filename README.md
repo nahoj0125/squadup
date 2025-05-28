@@ -16,6 +16,7 @@ SquadUp helps teams and groups coordinate by providing:
 ## Features
 - User registration and authentication (with hashed passwords)
 - CSRF protection on all sensitive routes
+
 - Group creation, deletion, and membership management
 - Messaging within groups
 - Availability calendar and best-time suggestions
@@ -25,10 +26,18 @@ SquadUp helps teams and groups coordinate by providing:
 - Session management with secure cookies
 
 ## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+Home Page
+![squadup_homepage](https://github.com/user-attachments/assets/59544102-f0f3-4d9c-a25f-210a6026ff33)
+
+Group Page
+![squadup_group](https://github.com/user-attachments/assets/da18fd0a-10da-41c1-a578-cd9464213966)
+
+Availability Page
+![squadup_availability](https://github.com/user-attachments/assets/1f3f2a10-742d-4bca-8cd3-6e62c5b47990)
 
 ## Installation
 Requirements
+
 - Node.js (v18+ recommended)
 - MongoDB (local or cloud)
 - npm
