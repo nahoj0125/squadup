@@ -21,7 +21,14 @@ Testningen kommer att ske i de här miljöerna
 
 ## Automatiserade tester
 
-Antal testsviter: 
+```bash
+npm test
+```
+
+| Automatiserade tester | Antal |
+|------|-------------------|
+| Testsviter | 11 |
+| Testfall | 135 |
 
 ## Manuell testning
 
