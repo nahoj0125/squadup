@@ -25,7 +25,7 @@ Antal testsviter:
 
 ## Manuell testning
 
-| Test | UC1(Registrering) #6 |
+| Test | UC1(Registrering) [Issue #17](https://github.com/nahoj0125/squadup/issues/17) |
 |------|-------------------|
 | TC1.1 |  |
 | TC1.2 |  |
@@ -34,7 +34,9 @@ Antal testsviter:
 | TC1.5 |  |
 
 
-| Test |UC2(Login) #6 |
+
+| Test |UC2(Login) [Issue #22](https://github.com/nahoj0125/squadup/issues/22) |
+
 |------|------|
 | TC2.1 |  |
 | TC2.2 |  |
@@ -42,7 +44,7 @@ Antal testsviter:
 | TC2.4 |  |
 | TC2.5 |  |
 
-| Test |UC3(Skapa grupp) #7 |
+| Test |UC3(Skapa grupp) [Issue #27](https://github.com/nahoj0125/squadup/issues/27) |
 |------|------|
 | TC3.1 |  |
 | TC3.2 |  |
@@ -50,12 +52,12 @@ Antal testsviter:
 | TC3.4 |  |
 | TC3.5 |  |
 
-| Test |UC4(Inbjudning) #32  |
+| Test |UC4(Inbjudning) [Issue #34](https://github.com/nahoj0125/squadup/issues/34)  |
 |------|------|
 | TC4.1 |  |
 | TC4.2 |  |
 
-| Test |UC5(Meddelande) #4  |
+| Test |UC5(Meddelande) [Issue #10](https://github.com/nahoj0125/squadup/issues/10)  |
 |------|------|
 | TC 5.1 |  |
 | TC5.2 |  |
@@ -64,7 +66,7 @@ Antal testsviter:
 | TC5.5 |  |
 
 
-| Test |UC6(Tillgänglighet) #2 #3 |
+| Test |UC6(Tillgänglighet) [Issue #2](https://github.com/nahoj0125/squadup/issues/2) [Issue #5](https://github.com/nahoj0125/squadup/issues/5) |
 |------|------|
 | TC6.1 |  |
 | TC6.2 |  |
@@ -72,13 +74,23 @@ Antal testsviter:
 | TC6.4 |  |
 | TC6.5 |  |
 
-| Test |UC7(Responsivitet) #24 |
+| Test |UC7(Responsivitet) [Issue #70](https://github.com/nahoj0125/squadup/issues/70) |
 |------|------|
 | TC7.1 |  |
 
-| Test |UC8(Kontoradering) #52 |
+| Test |UC8(Kontoradering) [Issue #46](https://github.com/nahoj0125/squadup/issues/46) |
 |------|------|
 | TC8.1 |  |
+
+| Test |UC9(Radering av grupp) [Issue #55](https://github.com/nahoj0125/squadup/issues/55) |
+|------|------|
+| TC9.1 |  |
+| TC9.2 |  |
+
+| Test |UC10(Hantering av inbjudan) [Issue #60](https://github.com/nahoj0125/squadup/issues/60) |
+|------|------|
+| TC10.1 |  |
+| TC10.2 |  |
 
 ## UC1(Registrering)
 
@@ -647,3 +659,60 @@ Det huvudsakliga scenariot för UC1 testas där en lyckad registrering av en anv
 
 **Förväntat resultat**
 - Användaren meddelas att konto och all information har raderats.
+
+## UC9(Radering av grupp)
+
+### TC9.1 Lyckad radering grupp som skapare
+**Förkrav**
+- Användaren är inloggad.
+- Användaren är skaparen av gruppen "Test Group".
+
+**Teststeg**
+1. Klicka på "Groups".
+2. Klicka på "Test Group".
+3. Klicka på "Delete Group".
+4. Klicka på "Delete Group".
+
+**Förväntat resultat**
+Gruppen raderas med all information.
+Användaren omdirigeras till gruppsidan.
+
+### TC9.2 Misslyckad radering grupp som medlem
+**Förkrav**
+- Användaren är inloggad.
+- Användaren är inte skaparen av gruppen "Test Group1".
+
+**Teststeg**
+1. Klicka på "Groups".
+2. Klicka på "Test Group1".
+
+**Förväntat resultat**
+- Användaren får inte åtkomst åt raderingsformuläret.
+
+## UC10(Hantering av inbjudan)
+
+### TC10.1 Accepterad inbjudan
+**Förkrav**
+- Användaren är inloggad.
+- Användaren har en inbjudan väntandes (pending).
+
+**Teststeg**
+1. Klicka på "Invitations".
+2. Klicka på "Accept".
+
+**Förväntat resultat**
+- Ett meddelande visas om att inbjudan har accepterats.
+- Användaren får medlemskap till gruppen.
+
+### TC 10.1 Avslagen inbjudan
+**Förkrav**
+- Användaren är inloggad.
+- Användaren har en inbjudan väntandes (pending).
+
+**Teststeg**
+1. Klicka på "Invitations".
+2. Klicka på "Decline".
+
+**Förväntat resultat**
+- Ett meddelande visas om att inbjudan har avslagits.
+- Användaren blir inte medlem i gruppen.

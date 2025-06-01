@@ -67,7 +67,6 @@ deploy_production_job:
     # Remove ALL stopped containers
     - docker rm $(docker ps -a -q) || true
     # Ensure the mongo container is really gone
-    - docker rm -f 8559f8b52ec2 || true
     - docker rm -f squadup-mongo || true
     # Clean up system
     - docker system prune -f
