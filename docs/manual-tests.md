@@ -35,8 +35,7 @@ Antal testsviter:
 
 
 
-| Test |UC2(Login) [Issue #22](https://github.com/nahoj0125/squadup/issues/22) |
-
+| Test | UC2(Login) [Issue #22](https://github.com/nahoj0125/squadup/issues/22) |
 |------|------|
 | TC2.1 |  |
 | TC2.2 |  |
