@@ -18,6 +18,7 @@ Testningen kommer att ske i de här miljöerna
 - Utvecklingsmiljö: Lokal Node.js installation med MongoDB
 - Testmiljö: SeparatMongoDB-testdatabas
 - Webbläsare: Chrome och Firefox
+- jest
 
 ## Automatiserade tester
 
