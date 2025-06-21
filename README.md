@@ -119,14 +119,17 @@ npm test
 npm run lint
 ```
 
-## Authors and acknowledgment
-Johan Persson (nahoj0125)
-
-## License
-This project is licensed under the GNU General Public License v3.0.
-
 ## Project status
 Active – SquadUp is under active development. Contributions and feedback are welcome!
 
 # Test deployment
 To test locally, follow the Installation steps and use the default environment variables.
+
+## Authors and acknowledgment
+[Johan Persson](https://github.com/nahoj0125) (nahoj0125)
+
+## License
+This project is licensed under the GNU General Public License v3.0.
+
+## Academic Context
+This project was developed as part of the course [1DV613](https://coursepress.lnu.se/kurser/mjukvaruutvecklingsprojekt/) during the first year of the  [Web Programming at Linnaeus University](https://lnu.se/program/webbprogrammerare/distans-ht/).
