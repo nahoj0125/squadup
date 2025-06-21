@@ -13,7 +13,7 @@ import { AvailabilityService } from '../services/AvailablilityService.js'
 export class AvailabilityController {
   #groupService
   #availabilityService
-
+//
   /**
    * Initializes a new instance of the AvailabilityController class.
    */
@@ -22,6 +22,7 @@ export class AvailabilityController {
     this.#availabilityService = new AvailabilityService()
   }
 
+  //
   /**
    * Display the availability form for a group.
    *
